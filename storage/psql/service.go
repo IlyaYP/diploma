@@ -17,14 +17,14 @@ const (
 
 type (
 	service struct {
-		config config
+		config Config
 	}
 
 	option func(svc *service) error
 )
 
 // WithConfig sets Config.
-func WithConfig(cfg config) option {
+func WithConfig(cfg Config) option {
 	return func(svc *service) error {
 		svc.config = cfg
 		return nil
@@ -40,8 +40,8 @@ func New(opts ...option) (*service, error) {
 		}
 	}
 
-	//if err := svc.config.Validate(); err != nil {
-	//	return nil, fmt.Errorf("config validation: %w", err)
+	//if err := svc.Config.Validate(); err != nil {
+	//	return nil, fmt.Errorf("Config validation: %w", err)
 	//}
 
 	//if svc.userStorage == nil {

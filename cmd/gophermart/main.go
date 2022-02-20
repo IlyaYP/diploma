@@ -3,16 +3,12 @@ package main
 import (
 	"context"
 	"fmt"
-	userService "github.com/IlyaYP/diploma/service/user"
-	userStorage "github.com/IlyaYP/diploma/storage/psql"
+	"github.com/IlyaYP/diploma/cmd/gophermart/config"
 )
 
 func main() {
-	st, err := userStorage.New()
-	if err != nil {
-		panic(err)
-	}
-	userSvc, err := userService.New(userService.WithUserStorage(st))
+	cfg := config.Config{}
+	userSvc, err := cfg.BuildUserService()
 	if err != nil {
 		panic(err)
 	}

@@ -18,7 +18,7 @@ const (
 
 type (
 	service struct {
-		config      config
+		config      Config
 		userStorage storage.UserStorage
 	}
 
@@ -34,7 +34,7 @@ func WithUserStorage(st storage.UserStorage) option {
 }
 
 // WithConfig sets Config.
-func WithConfig(cfg config) option {
+func WithConfig(cfg Config) option {
 	return func(svc *service) error {
 		svc.config = cfg
 		return nil

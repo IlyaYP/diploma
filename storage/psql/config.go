@@ -1,8 +1,8 @@
 package psql
 
-type config struct {
+type Config struct {
 }
 
-func (c config) validate() error {
+func (c Config) validate() error {
 	return nil
 }
