@@ -3,6 +3,7 @@ module github.com/IlyaYP/diploma
 go 1.17
 
 require (
+	github.com/caarlos0/env/v6 v6.9.1
 	github.com/google/uuid v1.3.0
 	github.com/rs/zerolog v1.26.1
 )

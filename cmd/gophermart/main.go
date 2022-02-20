@@ -7,7 +7,10 @@ import (
 )
 
 func main() {
-	cfg := config.Config{}
+	cfg, err := config.New()
+	if err != nil {
+		panic(err)
+	}
 	userSvc, err := cfg.BuildUserService()
 	if err != nil {
 		panic(err)
