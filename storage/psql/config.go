@@ -1,4 +1,4 @@
-package user
+package psql
 
 type config struct {
 }

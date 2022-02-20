@@ -3,11 +3,16 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/IlyaYP/diploma/service/user"
+	userService "github.com/IlyaYP/diploma/service/user"
+	userStorage "github.com/IlyaYP/diploma/storage/psql"
 )
 
 func main() {
-	userSvc, err := user.New()
+	st, err := userStorage.New()
+	if err != nil {
+		panic(err)
+	}
+	userSvc, err := userService.New(userService.WithUserStorage(st))
 	if err != nil {
 		panic(err)
 	}

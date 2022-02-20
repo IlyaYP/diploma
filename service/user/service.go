@@ -6,6 +6,7 @@ import (
 	"github.com/IlyaYP/diploma/model"
 	"github.com/IlyaYP/diploma/pkg"
 	"github.com/IlyaYP/diploma/pkg/logging"
+	"github.com/IlyaYP/diploma/storage"
 	"github.com/rs/zerolog"
 )
 
@@ -17,13 +18,31 @@ const (
 
 type (
 	service struct {
+		config      config
+		userStorage storage.UserStorage
 	}
 
-	Option func(service *service) error
+	option func(svc *service) error
 )
 
+// WithUserStorage sets storage.UserStorage.
+func WithUserStorage(st storage.UserStorage) option {
+	return func(svc *service) error {
+		svc.userStorage = st
+		return nil
+	}
+}
+
+// WithConfig sets Config.
+func WithConfig(cfg config) option {
+	return func(svc *service) error {
+		svc.config = cfg
+		return nil
+	}
+}
+
 // New creates a new service.
-func New(opts ...Option) (*service, error) {
+func New(opts ...option) (*service, error) {
 	svc := &service{}
 	for _, opt := range opts {
 		if err := opt(svc); err != nil {
@@ -35,15 +54,17 @@ func New(opts ...Option) (*service, error) {
 	//	return nil, fmt.Errorf("config validation: %w", err)
 	//}
 
-	//if svc.userStorage == nil {
-	//	return nil, fmt.Errorf("userStorage: nil")
-	//}
+	if svc.userStorage == nil {
+		return nil, fmt.Errorf("userStorage: nil")
+	}
 
 	return svc, nil
 }
 
 // CreateUser creates a new user.
 func (svc *service) CreateUser(ctx context.Context, login, password string) (model.User, error) {
+	ctx, _ = logging.GetCtxLogger(ctx) // correlationID is created here
+
 	logger := svc.Logger(ctx)
 	logger.Info().Msg("Creating user")
 
@@ -66,10 +87,7 @@ func (svc *service) CreateUser(ctx context.Context, login, password string) (mod
 	logger.UpdateContext(input.GetLoggerContext)
 	logger.Info().Msg("Creating user")
 
-	//logger.Warn().Err(err).Msg("Creating user")
-	//
-	//logger.UpdateContext(user.GetLoggerContext)
-	return model.User{Login: login, Password: password}, nil
+	return svc.userStorage.CreateUser(ctx, model.User{Login: login, Password: password})
 }
 
 // Login Authenticates user
