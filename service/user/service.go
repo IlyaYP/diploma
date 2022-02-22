@@ -93,6 +93,7 @@ func (svc *service) CreateUser(ctx context.Context, login, password string) (mod
 
 // Login Authenticates user
 func (svc *service) Login(ctx context.Context, login, password string) (model.User, error) {
+	ctx, _ = logging.GetCtxLogger(ctx) // correlationID is created here
 	logger := svc.Logger(ctx)
 
 	// Build input
@@ -106,12 +107,12 @@ func (svc *service) Login(ctx context.Context, login, password string) (model.Us
 	user, err := svc.userStorage.GetUserByLogin(ctx, login)
 	if err != nil {
 		logger.Err(err).Msg("Login Unsuccessful")
-		return model.User{}, err
+		return model.User{}, pkg.ErrInvalidLogin
 	}
 
 	if !hmac.Equal([]byte(pkg.Hash(password, login)), []byte(user.Password)) {
 		logger.Err(pkg.ErrInvalidPassword).Msg("Login Unsuccessful")
-		return model.User{}, pkg.ErrInvalidPassword
+		return model.User{}, pkg.ErrInvalidLogin
 	}
 
 	logger.Info().Msg("Login Success")

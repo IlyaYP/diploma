@@ -137,14 +137,24 @@ func (svc *service) CreateUser(ctx context.Context, user model.User) (model.User
 
 // GetUserByLogin returns model.User by its login if exists.
 func (svc *service) GetUserByLogin(ctx context.Context, login string) (*model.User, error) {
-	var password string
-	err := svc.pool.QueryRow(ctx, "select password from users where login=$1", login).Scan(&password)
+	logger := svc.Logger(ctx)
+	// Build input
+	user := model.User{
+		Login: login,
+	}
+
+	//logger.UpdateContext(user.GetLoggerContext)
+
+	//var password string
+	err := svc.pool.QueryRow(ctx, "select password from users where login=$1", login).Scan(&user.Password)
 	switch err {
 	case nil:
-		return &model.User{Login: login, Password: password}, nil
+		return &user, nil
 	case pgx.ErrNoRows:
-		return nil, pkg.ErrNotExists
+		logger.Err(pkg.ErrNotExists).Msg("Error GetUserByLogin")
+		return nil, pkg.ErrInvalidLogin
 	default:
+		logger.Err(err).Msg("Error GetUserByLogin")
 		return nil, err
 	}
 }
