@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"crypto/hmac"
 	"fmt"
 	"github.com/IlyaYP/diploma/model"
 	"github.com/IlyaYP/diploma/pkg"
@@ -87,12 +88,34 @@ func (svc *service) CreateUser(ctx context.Context, login, password string) (mod
 	logger.UpdateContext(input.GetLoggerContext)
 	logger.Info().Msg("Creating user")
 
-	return svc.userStorage.CreateUser(ctx, model.User{Login: login, Password: password})
+	return svc.userStorage.CreateUser(ctx, model.User{Login: login, Password: pkg.Hash(password, login)})
 }
 
 // Login Authenticates user
 func (svc *service) Login(ctx context.Context, login, password string) (model.User, error) {
-	return model.User{}, nil
+	logger := svc.Logger(ctx)
+
+	// Build input
+	input := model.User{
+		Login:    login,
+		Password: password,
+	}
+
+	logger.UpdateContext(input.GetLoggerContext)
+
+	user, err := svc.userStorage.GetUserByLogin(ctx, login)
+	if err != nil {
+		logger.Err(err).Msg("Login Unsuccessful")
+		return model.User{}, err
+	}
+
+	if !hmac.Equal([]byte(pkg.Hash(password, login)), []byte(user.Password)) {
+		logger.Err(pkg.ErrInvalidPassword).Msg("Login Unsuccessful")
+		return model.User{}, pkg.ErrInvalidPassword
+	}
+
+	logger.Info().Msg("Login Success")
+	return *user, nil
 }
 
 // Logger returns logger with service field set.

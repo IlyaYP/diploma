@@ -9,6 +9,7 @@ import (
 	"github.com/IlyaYP/diploma/pkg/logging"
 	"github.com/IlyaYP/diploma/storage"
 	"github.com/jackc/pgconn"
+	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/rs/zerolog"
 )
@@ -119,7 +120,6 @@ func (svc *service) CreateUser(ctx context.Context, user model.User) (model.User
 
 	_, err := svc.pool.Exec(ctx, `insert into users(login, password) values ($1, $2)`,
 		user.Login, user.Password)
-
 	if err != nil {
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
@@ -137,7 +137,16 @@ func (svc *service) CreateUser(ctx context.Context, user model.User) (model.User
 
 // GetUserByLogin returns model.User by its login if exists.
 func (svc *service) GetUserByLogin(ctx context.Context, login string) (*model.User, error) {
-	return &model.User{}, nil
+	var password string
+	err := svc.pool.QueryRow(ctx, "select password from users where login=$1", login).Scan(&password)
+	switch err {
+	case nil:
+		return &model.User{Login: login, Password: password}, nil
+	case pgx.ErrNoRows:
+		return nil, pkg.ErrNotExists
+	default:
+		return nil, err
+	}
 }
 
 // Logger returns logger with service field set.
