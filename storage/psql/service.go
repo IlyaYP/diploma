@@ -116,7 +116,6 @@ func (svc *service) Close() error {
 func (svc *service) CreateUser(ctx context.Context, user model.User) (model.User, error) {
 	logger := svc.Logger(ctx)
 	logger.UpdateContext(user.GetLoggerContext)
-	logger.Info().Msg("Creating user")
 
 	_, err := svc.pool.Exec(ctx, `insert into users(login, password) values ($1, $2)`,
 		user.Login, user.Password)
@@ -124,6 +123,7 @@ func (svc *service) CreateUser(ctx context.Context, user model.User) (model.User
 		var pgErr *pgconn.PgError
 		if errors.As(err, &pgErr) {
 			if pgErr.Code == "23505" {
+				logger.Err(err).Msg("Error creating user")
 				return model.User{}, pkg.ErrAlreadyExists
 			}
 		}
@@ -131,6 +131,8 @@ func (svc *service) CreateUser(ctx context.Context, user model.User) (model.User
 		logger.Err(err).Msg("Error creating user")
 		return model.User{}, err
 	}
+
+	logger.Info().Msg("Successfully created user")
 
 	return user, nil
 }

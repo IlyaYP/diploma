@@ -63,11 +63,10 @@ func New(opts ...option) (*service, error) {
 }
 
 // CreateUser creates a new user.
-func (svc *service) CreateUser(ctx context.Context, login, password string) (model.User, error) {
+func (svc *service) Register(ctx context.Context, login, password string) (model.User, error) {
 	ctx, _ = logging.GetCtxLogger(ctx) // correlationID is created here
 
 	logger := svc.Logger(ctx)
-	logger.Info().Msg("Creating user")
 
 	// Input checks
 	if login == "" {
@@ -86,9 +85,15 @@ func (svc *service) CreateUser(ctx context.Context, login, password string) (mod
 	}
 
 	logger.UpdateContext(input.GetLoggerContext)
-	logger.Info().Msg("Creating user")
 
-	return svc.userStorage.CreateUser(ctx, model.User{Login: login, Password: pkg.Hash(password, login)})
+	user, err := svc.userStorage.CreateUser(ctx, model.User{Login: login, Password: pkg.Hash(password, login)})
+	if err != nil {
+		logger.Err(err).Msg("Error register user")
+		return model.User{}, fmt.Errorf("Error register user: %w", err)
+	}
+
+	logger.Info().Msg("Successfully registered user")
+	return user, nil
 }
 
 // Login Authenticates user
