@@ -1,6 +1,7 @@
 package config
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"github.com/IlyaYP/diploma/pkg/logging"
@@ -31,17 +32,18 @@ func New() (*Config, error) {
 		return nil, fmt.Errorf("initializing config: %w", err)
 	}
 
-	if err := cfg.Validate(); err != nil {
+	if err := cfg.validate(); err != nil {
 		return nil, fmt.Errorf("validating config: %w", err)
 	}
 
+	cfg.PSQLStorage = psql.NewDefaultConfig()
 	cfg.PSQLStorage.DSN = cfg.DSN
 
 	return &cfg, nil
 }
 
-// Validate performs a basic validation.
-func (c Config) Validate() error {
+// validate performs a basic validation.
+func (c Config) validate() error {
 	logger := logging.NewLogger()
 	if c.Address == "" {
 		return fmt.Errorf("%s field: empty", "RUN_ADDRESS")
@@ -58,14 +60,15 @@ func (c Config) Validate() error {
 	}
 	logger = logger.With().Str("ACCRUAL_SYSTEM_ADDRESS", c.AccrualAddress).Logger()
 
-	logger.Info().Msg("initialized")
+	logger.Info().Msg("Initialized with args:")
 	return nil
 }
 
 // BuildPsqlStorage builds psql.Storage dependency.
-func (c Config) BuildPsqlStorage() (storage.UserStorage, error) {
+func (c Config) BuildPsqlStorage(ctx context.Context) (storage.UserStorage, error) {
 	st, err := psql.New(
 		psql.WithConfig(c.PSQLStorage),
+		psql.WithContext(ctx),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("building psql storage: %w", err)
@@ -75,8 +78,8 @@ func (c Config) BuildPsqlStorage() (storage.UserStorage, error) {
 }
 
 // BuildUserService builds user.Processor dependency.
-func (c Config) BuildUserService() (user.Service, error) {
-	st, err := c.BuildPsqlStorage()
+func (c Config) BuildUserService(ctx context.Context) (user.Service, error) {
+	st, err := c.BuildPsqlStorage(ctx)
 	if err != nil {
 		return nil, err
 	}

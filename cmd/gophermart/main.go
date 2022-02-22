@@ -11,12 +11,13 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	userSvc, err := cfg.BuildUserService()
+	ctx := context.Background()
+	userSvc, err := cfg.BuildUserService(ctx)
 	if err != nil {
 		panic(err)
 	}
 
-	user, err := userSvc.CreateUser(context.Background(), "vasya", "God")
+	user, err := userSvc.CreateUser(ctx, "vasya", "God")
 	if err != nil {
 		panic(err)
 	}

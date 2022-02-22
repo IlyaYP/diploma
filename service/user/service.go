@@ -50,7 +50,7 @@ func New(opts ...option) (*service, error) {
 		}
 	}
 
-	//if err := svc.config.Validate(); err != nil {
+	//if err := svc.config.validate(); err != nil {
 	//	return nil, fmt.Errorf("config validation: %w", err)
 	//}
 
