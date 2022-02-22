@@ -17,7 +17,7 @@ func main() {
 		panic(err)
 	}
 
-	user, err := userSvc.CreateUser(ctx, "vasya", "God")
+	user, err := userSvc.CreateUser(ctx, "vasya1", "God")
 	if err != nil {
 		panic(err)
 	}

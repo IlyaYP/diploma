@@ -2,10 +2,13 @@ package psql
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/IlyaYP/diploma/model"
+	"github.com/IlyaYP/diploma/pkg"
 	"github.com/IlyaYP/diploma/pkg/logging"
 	"github.com/IlyaYP/diploma/storage"
+	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/rs/zerolog"
 )
@@ -113,6 +116,22 @@ func (svc *service) CreateUser(ctx context.Context, user model.User) (model.User
 	logger := svc.Logger(ctx)
 	logger.UpdateContext(user.GetLoggerContext)
 	logger.Info().Msg("Creating user")
+
+	_, err := svc.pool.Exec(ctx, `insert into users(login, password) values ($1, $2)`,
+		user.Login, user.Password)
+
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			if pgErr.Code == "23505" {
+				return model.User{}, pkg.ErrAlreadyExists
+			}
+		}
+
+		logger.Err(err).Msg("Error creating user")
+		return model.User{}, err
+	}
+
 	return user, nil
 }
 
