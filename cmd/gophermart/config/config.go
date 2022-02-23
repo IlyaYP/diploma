@@ -4,6 +4,8 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/IlyaYP/diploma/api/server"
+	"github.com/IlyaYP/diploma/api/server/router"
 	"github.com/IlyaYP/diploma/pkg/logging"
 	"github.com/IlyaYP/diploma/service/user"
 	"github.com/IlyaYP/diploma/storage"
@@ -15,6 +17,7 @@ import (
 type Config struct {
 	UserService    user.Config
 	PSQLStorage    psql.Config
+	APISever       server.Config
 	Address        string `env:"RUN_ADDRESS"`
 	AccrualAddress string `env:"ACCRUAL_SYSTEM_ADDRESS"`
 	DSN            string `env:"DATABASE_URI"`
@@ -38,6 +41,7 @@ func New() (*Config, error) {
 
 	cfg.PSQLStorage = psql.NewDefaultConfig()
 	cfg.PSQLStorage.DSN = cfg.DSN
+	cfg.APISever.Address = cfg.Address
 
 	return &cfg, nil
 }
@@ -95,4 +99,27 @@ func (c Config) BuildUserService(ctx context.Context) (user.Service, error) {
 
 	return svc, nil
 
+}
+
+// BuildServer builds REST API Server dependency.
+func (c Config) BuildServer(ctx context.Context) (*server.Server, error) {
+	userSvc, err := c.BuildUserService(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("building server: %w", err)
+	}
+
+	r, err := router.NewHandler(
+		router.WithUserService(userSvc),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("building server: %w", err)
+	}
+	s, err := server.New(
+		server.WithConfig(&c.APISever),
+		server.WithRouter(r),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("building server: %w", err)
+	}
+	return s, nil
 }

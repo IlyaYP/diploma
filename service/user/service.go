@@ -23,11 +23,11 @@ type (
 		userStorage storage.UserStorage
 	}
 
-	option func(svc *service) error
+	Option func(svc *service) error
 )
 
 // WithUserStorage sets storage.UserStorage.
-func WithUserStorage(st storage.UserStorage) option {
+func WithUserStorage(st storage.UserStorage) Option {
 	return func(svc *service) error {
 		svc.userStorage = st
 		return nil
@@ -35,7 +35,7 @@ func WithUserStorage(st storage.UserStorage) option {
 }
 
 // WithConfig sets Config.
-func WithConfig(cfg Config) option {
+func WithConfig(cfg Config) Option {
 	return func(svc *service) error {
 		svc.config = cfg
 		return nil
@@ -43,7 +43,7 @@ func WithConfig(cfg Config) option {
 }
 
 // New creates a new service.
-func New(opts ...option) (*service, error) {
+func New(opts ...Option) (*service, error) {
 	svc := &service{}
 	for _, opt := range opts {
 		if err := opt(svc); err != nil {
@@ -62,7 +62,7 @@ func New(opts ...option) (*service, error) {
 	return svc, nil
 }
 
-// CreateUser creates a new user.
+// Register a new user.
 func (svc *service) Register(ctx context.Context, login, password string) (model.User, error) {
 	ctx, _ = logging.GetCtxLogger(ctx) // correlationID is created here
 
@@ -89,7 +89,7 @@ func (svc *service) Register(ctx context.Context, login, password string) (model
 	user, err := svc.userStorage.CreateUser(ctx, model.User{Login: login, Password: pkg.Hash(password, login)})
 	if err != nil {
 		logger.Err(err).Msg("Error register user")
-		return model.User{}, fmt.Errorf("Error register user: %w", err)
+		return model.User{}, fmt.Errorf("register user: %w", err)
 	}
 
 	logger.Info().Msg("Successfully registered user")
