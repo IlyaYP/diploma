@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"github.com/go-chi/chi/v5"
 	"net/http"
 )
 
@@ -16,16 +17,16 @@ GET /api/user/balance/withdrawals — получение информации о
 
 */
 
-//func (h *Handler) user(router chi.Router) {
-//	router.Post("/api/user/register", router.UserRegister)
-//	router.Post("/api/user/login", router.UserLogin)
-//	router.Post("/api/user/orders", router.PutOrder)
-//	router.Get("/api/user/orders", router.GetOrders)
-//	router.Get("/api/user/balance", router.GetBalance)
-//	router.Post("/api/user/balance/withdraw", router.Withdraw)
-//	router.Get("/api/user/balance/withdrawals", router.GetWithdrawals)
-//
-//}
+func (h *Handler) user(router chi.Router) {
+	router.Post("/register", h.UserRegister)
+	router.Post("/login", h.UserLogin)
+	router.Post("/orders", h.PutOrder)
+	router.Get("/orders", h.GetOrders)
+	router.Get("/balance", h.GetBalance)
+	router.Post("/balance/withdraw", h.Withdraw)
+	router.Get("/balance/withdrawals", h.GetWithdrawals)
+
+}
 
 // UserRegister register new user
 func (h *Handler) UserRegister(w http.ResponseWriter, r *http.Request) {
