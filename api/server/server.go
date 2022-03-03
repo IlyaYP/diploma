@@ -2,7 +2,7 @@ package server
 
 import (
 	"fmt"
-	"github.com/IlyaYP/diploma/api/server/router"
+	"github.com/IlyaYP/diploma/api/server/handler"
 	"net/http"
 )
 
@@ -50,7 +50,7 @@ func WithConfig(cfg *Config) Option {
 }
 
 // WithRouter sets Router.
-func WithRouter(r *router.Handler) Option {
+func WithRouter(r *handler.Handler) Option {
 	return func(s *Server) error {
 		s.Handler = r
 		return nil

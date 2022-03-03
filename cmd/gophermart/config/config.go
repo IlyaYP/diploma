@@ -5,7 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/IlyaYP/diploma/api/server"
-	"github.com/IlyaYP/diploma/api/server/router"
+	"github.com/IlyaYP/diploma/api/server/handler"
 	"github.com/IlyaYP/diploma/pkg/logging"
 	"github.com/IlyaYP/diploma/service/user"
 	"github.com/IlyaYP/diploma/storage"
@@ -108,8 +108,8 @@ func (c Config) BuildServer(ctx context.Context) (*server.Server, error) {
 		return nil, fmt.Errorf("building server: %w", err)
 	}
 
-	r, err := router.NewHandler(
-		router.WithUserService(userSvc),
+	r, err := handler.NewHandler(
+		handler.WithUserService(userSvc),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("building server: %w", err)
