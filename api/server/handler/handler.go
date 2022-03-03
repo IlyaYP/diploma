@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/IlyaYP/diploma/service/user"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/render"
+	"net/http"
 )
 
 type (
@@ -21,6 +23,17 @@ func WithUserService(user user.Service) Option {
 	}
 }
 
+/*
+POST /api/user/register — регистрация пользователя;
+POST /api/user/login — аутентификация пользователя;
+POST /api/user/orders — загрузка пользователем номера заказа для расчёта;
+GET /api/user/orders — получение списка загруженных пользователем номеров заказов, статусов их обработки и информации о начислениях;
+GET /api/user/balance — получение текущего баланса счёта баллов лояльности пользователя;
+POST /api/user/balance/withdraw — запрос на списание баллов с накопительного счёта в счёт оплаты нового заказа;
+GET /api/user/balance/withdrawals — получение информации о выводе средств с накопительного счёта пользователем.
+
+*/
+
 func NewHandler(opts ...Option) (*Handler, error) {
 	h := &Handler{
 		Mux: chi.NewMux(),
@@ -32,7 +45,23 @@ func NewHandler(opts ...Option) (*Handler, error) {
 		}
 	}
 
+	h.MethodNotAllowed(methodNotAllowedHandler)
+	h.NotFound(notFoundHandler)
 	h.Route("/api/user", h.user)
+	h.Route("/api/user/orders", h.order)
+	h.Route("/api/user/balance", h.balance)
 
 	return h, nil
+}
+
+func methodNotAllowedHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-type", "application/json")
+	w.WriteHeader(405)
+	render.Render(w, r, ErrMethodNotAllowed)
+}
+
+func notFoundHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-type", "application/json")
+	w.WriteHeader(400)
+	render.Render(w, r, ErrNotFound)
 }
