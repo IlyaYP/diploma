@@ -1,11 +1,18 @@
 package handler
 
 import (
+	"context"
 	"fmt"
+	"github.com/IlyaYP/diploma/pkg/logging"
 	"github.com/IlyaYP/diploma/service/user"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/render"
+	"github.com/rs/zerolog"
 	"net/http"
+)
+
+const (
+	serviceName = "handler"
 )
 
 type (
@@ -68,4 +75,11 @@ func notFoundHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-type", "application/json")
 	w.WriteHeader(400)
 	render.Render(w, r, ErrNotFound)
+}
+
+func (h *Handler) Logger(ctx context.Context) *zerolog.Logger {
+	_, logger := logging.GetCtxLogger(ctx)
+	logger = logger.With().Str(logging.ServiceKey, serviceName).Logger()
+
+	return &logger
 }
