@@ -7,7 +7,7 @@ import (
 )
 
 func (h *Handler) order(router chi.Router) {
-	//router.Use(UserContext)
+	router.Use(h.UserContext)
 	router.Post("/", h.PutOrder)
 	router.Get("/", h.GetOrders)
 

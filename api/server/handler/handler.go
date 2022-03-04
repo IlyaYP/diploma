@@ -45,11 +45,15 @@ func NewHandler(opts ...Option) (*Handler, error) {
 		}
 	}
 
+	h.Use(render.SetContentType(render.ContentTypeJSON))
 	h.MethodNotAllowed(methodNotAllowedHandler)
 	h.NotFound(notFoundHandler)
 	h.Route("/api/user", h.user)
 	h.Route("/api/user/orders", h.order)
 	h.Route("/api/user/balance", h.balance)
+	h.Get("/ping", func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("pong"))
+	})
 
 	return h, nil
 }

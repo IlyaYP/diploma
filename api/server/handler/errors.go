@@ -5,38 +5,59 @@ import (
 	"net/http"
 )
 
-type ErrorResponse struct {
-	Err        error  `json:"-"`
-	StatusCode int    `json:"-"`
-	StatusText string `json:"status_text"`
-	Message    string `json:"message"`
+//--
+// Error response payloads & renderers
+//--
+
+// ErrResponse renderer type for handling all sorts of errors.
+//
+// In the best case scenario, the excellent github.com/pkg/errors package
+// helps reveal information on the error, setting it on Err, and in the Render()
+// method, using it to set the application-specific error code in AppCode.
+type ErrResponse struct {
+	Err            error  `json:"-"`               // low-level runtime error
+	HTTPStatusCode int    `json:"-"`               // http response status code
+	StatusText     string `json:"status"`          // user-level status message
+	AppCode        int64  `json:"code,omitempty"`  // application-specific error code
+	ErrorText      string `json:"error,omitempty"` // application-level error message, for debugging
 }
 
-var (
-	ErrMethodNotAllowed = &ErrorResponse{StatusCode: 405, Message: "Method not allowed"}
-	ErrNotFound         = &ErrorResponse{StatusCode: 404, Message: "Resource not found"}
-	ErrBadRequest       = &ErrorResponse{StatusCode: 400, Message: "Bad request"}
-)
-
-func (e *ErrorResponse) Render(w http.ResponseWriter, r *http.Request) error {
-	render.Status(r, e.StatusCode)
+func (e *ErrResponse) Render(w http.ResponseWriter, r *http.Request) error {
+	render.Status(r, e.HTTPStatusCode)
 	return nil
 }
 
-func ErrorRenderer(err error) *ErrorResponse {
-	return &ErrorResponse{
-		Err:        err,
-		StatusCode: 400,
-		StatusText: "Bad request",
-		Message:    err.Error(),
+func ErrInvalidRequest(err error) render.Renderer {
+	return &ErrResponse{
+		Err:            err,
+		HTTPStatusCode: 400,
+		StatusText:     "Invalid request.",
+		ErrorText:      err.Error(),
 	}
 }
 
-func ServerErrorRenderer(err error) *ErrorResponse {
-	return &ErrorResponse{
-		Err:        err,
-		StatusCode: 500,
-		StatusText: "Internal server error",
-		Message:    err.Error(),
+func ErrServerError(err error) render.Renderer {
+	return &ErrResponse{
+		Err:            err,
+		HTTPStatusCode: 500,
+		StatusText:     "Internal server error.",
+		ErrorText:      err.Error(),
 	}
 }
+
+func ErrRender(err error) render.Renderer {
+	return &ErrResponse{
+		Err:            err,
+		HTTPStatusCode: 422,
+		StatusText:     "Error rendering response.",
+		ErrorText:      err.Error(),
+	}
+}
+
+var (
+	ErrNotFound         = &ErrResponse{HTTPStatusCode: 404, StatusText: "Resource not found."}
+	ErrMethodNotAllowed = &ErrResponse{HTTPStatusCode: 405, StatusText: "Method not allowed"}
+	ErrBadRequest       = &ErrResponse{HTTPStatusCode: 400, StatusText: "Bad request"}
+	ErrAlreadyExists    = &ErrResponse{HTTPStatusCode: 409, StatusText: "User exists"}
+	ErrInvalidLogin     = &ErrResponse{HTTPStatusCode: 401, StatusText: "Invalid login"}
+)

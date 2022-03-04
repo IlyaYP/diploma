@@ -7,7 +7,7 @@ import (
 )
 
 func (h *Handler) balance(router chi.Router) {
-	//router.Use(UserContext)
+	router.Use(h.UserContext)
 	router.Get("/", h.GetBalance)
 	router.Post("/withdraw", h.Withdraw)
 	router.Get("/withdrawals", h.GetWithdrawals)
