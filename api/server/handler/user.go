@@ -2,12 +2,13 @@ package handler
 
 import (
 	"errors"
+	"fmt"
 	"github.com/IlyaYP/diploma/model"
 	"github.com/IlyaYP/diploma/pkg"
 	"github.com/IlyaYP/diploma/pkg/logging"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/jwtauth/v5"
 	"github.com/go-chi/render"
-	"log"
 	"net/http"
 )
 
@@ -41,8 +42,11 @@ func (h *Handler) UserRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	_, tokenString, _ := h.tokenAuth.Encode(map[string]interface{}{"login": user.Login})
+	w.Header().Set("Authorization", "Bearer "+tokenString)
+
 	logger.Info().Msg("Successfully registered user")
-	render.Render(w, r, &user) // TODO: Remove
+	//render.Render(w, r, &user) // TODO: Remove
 
 }
 
@@ -71,12 +75,25 @@ func (h *Handler) UserLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	_, tokenString, _ := h.tokenAuth.Encode(map[string]interface{}{"login": user.Login})
+	w.Header().Set("Authorization", "Bearer "+tokenString)
+
 	logger.Info().Msg("Login Success")
-	render.Render(w, r, &user) // TODO: Remove
 }
 
 func (h *Handler) UserContext(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx, _ := logging.GetCtxLogger(r.Context()) // correlationID is created here
+		logger := h.Logger(ctx)
+
+		_, claims, _ := jwtauth.FromContext(r.Context())
+		login := fmt.Sprintf("%v", claims["login"])
+		input := &model.User{Login: login}
+		logger.UpdateContext(input.GetLoggerContext)
+		ctx = logging.SetCtxLogger(ctx, *logger)
+
+		logger.Info().Msg("UserContext")
+
 		//var article *Article
 		//var err error
 		//
@@ -95,7 +112,8 @@ func (h *Handler) UserContext(next http.Handler) http.Handler {
 		//
 		//ctx := context.WithValue(r.Context(), "article", article)
 		//next.ServeHTTP(w, r.WithContext(ctx))
-		log.Println("UserContext")
-		next.ServeHTTP(w, r)
+
+		//log.Println("UserContext")
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

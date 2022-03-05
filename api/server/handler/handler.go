@@ -6,6 +6,7 @@ import (
 	"github.com/IlyaYP/diploma/pkg/logging"
 	"github.com/IlyaYP/diploma/service/user"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/jwtauth/v5"
 	"github.com/go-chi/render"
 	"github.com/rs/zerolog"
 	"net/http"
@@ -18,7 +19,8 @@ const (
 type (
 	Handler struct {
 		*chi.Mux
-		userSvc user.Service
+		userSvc   user.Service
+		tokenAuth *jwtauth.JWTAuth
 	}
 	Option func(h *Handler) error
 )
@@ -51,6 +53,8 @@ func NewHandler(opts ...Option) (*Handler, error) {
 			return nil, fmt.Errorf("initialising dependencies: %w", err)
 		}
 	}
+
+	h.tokenAuth = jwtauth.New("HS256", []byte("GMartSuperSecret"), nil)
 
 	h.Use(render.SetContentType(render.ContentTypeJSON))
 	h.MethodNotAllowed(methodNotAllowedHandler)
