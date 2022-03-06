@@ -21,7 +21,7 @@ type Order struct {
 	Status     OrderStatus `json:"status"`
 	Accrual    int         `json:"accrual"`
 	UploadedAt time.Time   `json:"uploaded_at"`
-	user       string
+	User       string
 }
 
 type OrderStatus string
@@ -78,7 +78,7 @@ func (s OrderStatus) Validate() error {
 
 // GetLoggerContext enriches logger context with essential Order fields.
 func (o Order) GetLoggerContext(logCtx zerolog.Context) zerolog.Context {
-	logCtx = logCtx.Str("login", o.user)
+	logCtx = logCtx.Str("login", o.User)
 	logCtx = logCtx.Int("ordernum", o.Number)
 	return logCtx
 }
