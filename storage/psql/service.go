@@ -145,9 +145,9 @@ func (svc *service) GetUserByLogin(ctx context.Context, login string) (*model.Us
 		Login: login,
 	}
 
-	//logger.UpdateContext(user.GetLoggerContext)
+	logger.UpdateContext(user.GetLoggerContext)
+	logger.Info().Msg("GetUserByLogin")
 
-	//var password string
 	err := svc.pool.QueryRow(ctx, "select password from users where login=$1", login).Scan(&user.Password)
 	switch err {
 	case nil:

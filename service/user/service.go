@@ -135,6 +135,7 @@ func (svc *service) GetUserByLogin(ctx context.Context, login string) (*model.Us
 	}
 
 	logger.UpdateContext(input.GetLoggerContext)
+	logger.Info().Msg("GetUserByLogin")
 
 	user, err := svc.userStorage.GetUserByLogin(ctx, login)
 	if err != nil {
