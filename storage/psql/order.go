@@ -10,7 +10,7 @@ func (svc *service) CreateOrder(ctx context.Context, order model.Order) (model.O
 	return model.Order{}, nil
 }
 
-// GetUserByLogin returns model.User by its login if exists.
+// GetOrdersByUser returns *[]model.Order by its login if exists.
 func (svc *service) GetOrdersByUser(ctx context.Context, login string) (*[]model.Order, error) {
 	return nil, nil
 }
