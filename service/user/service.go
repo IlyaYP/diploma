@@ -124,6 +124,27 @@ func (svc *service) Login(ctx context.Context, login, password string) (model.Us
 	return *user, nil
 }
 
+// GetUserByLogin returns model.User by its login if exists.
+func (svc *service) GetUserByLogin(ctx context.Context, login string) (*model.User, error) {
+	ctx, _ = logging.GetCtxLogger(ctx) // correlationID is created here
+	logger := svc.Logger(ctx)
+
+	// Build input
+	input := model.User{
+		Login: login,
+	}
+
+	logger.UpdateContext(input.GetLoggerContext)
+
+	user, err := svc.userStorage.GetUserByLogin(ctx, login)
+	if err != nil {
+		logger.Err(err).Msg("Error GetUserByLogin")
+		return nil, pkg.ErrInvalidLogin
+	}
+
+	return user, nil
+}
+
 // Logger returns logger with service field set.
 func (svc *service) Logger(ctx context.Context) *zerolog.Logger {
 	_, logger := logging.GetCtxLogger(ctx)

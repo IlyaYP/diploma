@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"github.com/IlyaYP/diploma/model"
@@ -9,6 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/go-chi/render"
+	"github.com/lestrrat-go/jwx/jwt"
 	"net/http"
 )
 
@@ -86,34 +88,32 @@ func (h *Handler) UserContext(next http.Handler) http.Handler {
 		ctx, _ := logging.GetCtxLogger(r.Context()) // correlationID is created here
 		logger := h.Logger(ctx)
 
-		_, claims, _ := jwtauth.FromContext(r.Context())
+		token, claims, err := jwtauth.FromContext(ctx)
+
+		if err != nil {
+			http.Error(w, err.Error(), 401)
+			return
+		}
+
+		if token == nil || jwt.Validate(token) != nil {
+			http.Error(w, http.StatusText(401), 401)
+			return
+		}
+
 		login := fmt.Sprintf("%v", claims["login"])
 		input := &model.User{Login: login}
 		logger.UpdateContext(input.GetLoggerContext)
 		ctx = logging.SetCtxLogger(ctx, *logger)
 
+		user, err := h.userSvc.GetUserByLogin(ctx, login)
+		if err != nil {
+			http.Error(w, err.Error(), 401)
+			logger.Err(err).Msg("GetUserByLogin")
+			return
+		}
+
+		ctx = context.WithValue(ctx, "user", user)
 		logger.Info().Msg("UserContext")
-
-		//var article *Article
-		//var err error
-		//
-		//if articleID := chi.URLParam(r, "articleID"); articleID != "" {
-		//	article, err = dbGetArticle(articleID)
-		//} else if articleSlug := chi.URLParam(r, "articleSlug"); articleSlug != "" {
-		//	article, err = dbGetArticleBySlug(articleSlug)
-		//} else {
-		//	render.Render(w, r, ErrNotFound)
-		//	return
-		//}
-		//if err != nil {
-		//	render.Render(w, r, ErrNotFound)
-		//	return
-		//}
-		//
-		//ctx := context.WithValue(r.Context(), "article", article)
-		//next.ServeHTTP(w, r.WithContext(ctx))
-
-		//log.Println("UserContext")
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
