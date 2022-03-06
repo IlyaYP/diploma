@@ -17,3 +17,14 @@ type UserStorage interface {
 	// GetUserByLogin returns model.User by its login if exists.
 	GetUserByLogin(ctx context.Context, login string) (*model.User, error)
 }
+
+// OrderStorage defines model.Order create/update operations.
+type OrderStorage interface {
+	io.Closer
+
+	// CreateOrder creates a new model.Order.
+	CreateOrder(ctx context.Context, order model.Order) (model.Order, error)
+
+	// GetUserByLogin returns model.User by its login if exists.
+	GetOrdersByUser(ctx context.Context, login string) (*[]model.Order, error)
+}

@@ -21,7 +21,7 @@ func (h *Handler) order(router chi.Router) {
 
 }
 
-// PutOrder Puts new order
+// NewOrder Puts new order
 //200 — номер заказа уже был загружен этим пользователем;
 //202 — новый номер заказа принят в обработку;
 //400 — неверный формат запроса;
@@ -38,13 +38,6 @@ func (h *Handler) NewOrder(w http.ResponseWriter, r *http.Request) {
 		render.Render(w, r, ErrServerError(err))
 		return
 	}
-
-	//// TODO: move to order model
-	//logger.UpdateContext(func(logCtx zerolog.Context) zerolog.Context {
-	//	return logCtx.Str("ordernum", string(b))
-	//})
-
-	//logger.Info().Msg("NewOrder")
 
 	ordernum, err := strconv.Atoi(string(b))
 	if err != nil {
