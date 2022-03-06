@@ -53,12 +53,13 @@ func (h *Handler) PutOrder(w http.ResponseWriter, r *http.Request) {
 		logger.Err(err).Msg("PutOrder")
 		return
 	}
+
 	if !pkg.Valid(ordernum) {
 		render.Render(w, r, ErrInvalidOrderNum)
 		logger.Err(pkg.ErrInvalidOrderNum).Msg("PutOrder")
 		return
-
 	}
+
 	logger.Info().Msgf("PutOrder:%v", ordernum)
 }
 
