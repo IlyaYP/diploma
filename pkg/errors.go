@@ -8,6 +8,7 @@ var (
 	ErrInvalidPassword = errors.New("wrong password")
 	ErrAlreadyExists   = errors.New("object exists in the DB")
 	ErrNotExists       = errors.New("object not exists in the DB")
+	ErrInvalidOrderNum = errors.New("invalid order num")
 )
 
 /*

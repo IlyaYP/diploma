@@ -60,6 +60,8 @@ var (
 	ErrBadRequest       = &ErrResponse{HTTPStatusCode: 400, StatusText: "Bad request"}
 	ErrAlreadyExists    = &ErrResponse{HTTPStatusCode: 409, StatusText: "User exists"}
 	ErrInvalidLogin     = &ErrResponse{HTTPStatusCode: 401, StatusText: "Invalid login"}
+	ErrInvalidOrderNum  = &ErrResponse{HTTPStatusCode: 422, StatusText: "Invalid order num"} //422 — неверный формат номера заказа;
+
 )
 
 /*

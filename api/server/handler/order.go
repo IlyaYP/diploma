@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"github.com/IlyaYP/diploma/model"
+	"github.com/IlyaYP/diploma/pkg"
 	"github.com/IlyaYP/diploma/pkg/logging"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/jwtauth/v5"
@@ -10,6 +11,7 @@ import (
 	"github.com/rs/zerolog"
 	"io"
 	"net/http"
+	"strconv"
 )
 
 func (h *Handler) order(router chi.Router) {
@@ -45,6 +47,19 @@ func (h *Handler) PutOrder(w http.ResponseWriter, r *http.Request) {
 	//*logger = logger.With().Str("OrderNum", string(b)).Logger()
 	logger.Info().Msg("PutOrder")
 
+	ordernum, err := strconv.Atoi(string(b))
+	if err != nil {
+		render.Render(w, r, ErrServerError(err))
+		logger.Err(err).Msg("PutOrder")
+		return
+	}
+	if !pkg.Valid(ordernum) {
+		render.Render(w, r, ErrInvalidOrderNum)
+		logger.Err(pkg.ErrInvalidOrderNum).Msg("PutOrder")
+		return
+
+	}
+	logger.Info().Msgf("PutOrder:%v", ordernum)
 }
 
 // GetOrders Gets order list
