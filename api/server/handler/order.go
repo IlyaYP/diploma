@@ -8,7 +8,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/go-chi/render"
-	"github.com/rs/zerolog"
 	"io"
 	"net/http"
 	"strconv"
@@ -17,7 +16,7 @@ import (
 func (h *Handler) order(router chi.Router) {
 	router.Use(jwtauth.Verifier(h.tokenAuth))
 	router.Use(h.UserContext) // instead of jwtauth.Authenticator
-	router.Post("/", h.PutOrder)
+	router.Post("/", h.NewOrder)
 	router.Get("/", h.GetOrders)
 
 }
@@ -30,7 +29,7 @@ func (h *Handler) order(router chi.Router) {
 //409 — номер заказа уже был загружен другим пользователем;
 //422 — неверный формат номера заказа;
 //500 — внутренняя ошибка сервера.
-func (h *Handler) PutOrder(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) NewOrder(w http.ResponseWriter, r *http.Request) {
 	ctx, _ := logging.GetCtxLogger(r.Context()) // correlationID is created here
 	logger := h.Logger(ctx)
 
@@ -40,27 +39,29 @@ func (h *Handler) PutOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: move to order model
-	logger.UpdateContext(func(logCtx zerolog.Context) zerolog.Context {
-		return logCtx.Str("ordernum", string(b))
-	})
-	//*logger = logger.With().Str("OrderNum", string(b)).Logger()
-	logger.Info().Msg("PutOrder")
+	//// TODO: move to order model
+	//logger.UpdateContext(func(logCtx zerolog.Context) zerolog.Context {
+	//	return logCtx.Str("ordernum", string(b))
+	//})
+
+	//logger.Info().Msg("NewOrder")
 
 	ordernum, err := strconv.Atoi(string(b))
 	if err != nil {
 		render.Render(w, r, ErrServerError(err))
-		logger.Err(err).Msg("PutOrder")
+		logger.Err(err).Msgf("NewOrder: wrong number %s", string(b))
 		return
 	}
 
-	if !pkg.Valid(ordernum) {
+	//input := &model.Order{Number: ordernum}
+
+	if !pkg.ValidLuhn(ordernum) {
 		render.Render(w, r, ErrInvalidOrderNum)
-		logger.Err(pkg.ErrInvalidOrderNum).Msg("PutOrder")
+		logger.Err(pkg.ErrInvalidOrderNum).Msgf("NewOrder: wrong number %v", ordernum)
 		return
 	}
 
-	logger.Info().Msgf("PutOrder:%v", ordernum)
+	logger.Info().Msgf("NewOrder:%v", ordernum)
 }
 
 // GetOrders Gets order list
@@ -69,7 +70,12 @@ func (h *Handler) GetOrders(w http.ResponseWriter, r *http.Request) {
 	logger := h.Logger(ctx)
 	logger.Info().Msg("GetOrders")
 
-	user, _ := ctx.Value("user").(*model.User)
+	//user, _ := ctx.Value("user").(*model.User) // Removed to model
+	user, ok := model.UserFromContext(ctx)
+	if !ok {
+		logger.Err(pkg.ErrInvalidLogin).Msg("GetOrders: can't get user from context")
+		render.Render(w, r, ErrInvalidLogin)
+	}
 
 	//_, claims, _ := jwtauth.FromContext(r.Context())
 	////w.Write([]byte(fmt.Sprintf("protected area. hi %v", claims["login"])))

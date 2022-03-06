@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"github.com/IlyaYP/diploma/model"
@@ -83,6 +82,7 @@ func (h *Handler) UserLogin(w http.ResponseWriter, r *http.Request) {
 	logger.Info().Msg("Login Success")
 }
 
+// UserContext Gets user from JWT, checks in DB and puts into Context
 func (h *Handler) UserContext(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx, _ := logging.GetCtxLogger(r.Context()) // correlationID is created here
@@ -112,7 +112,9 @@ func (h *Handler) UserContext(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx = context.WithValue(ctx, "user", user)
+		//ctx = context.WithValue(ctx, "user", user) // Removed to model
+		ctx = model.UserNewContext(ctx, user)
+
 		logger.Info().Msg("UserContext")
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
