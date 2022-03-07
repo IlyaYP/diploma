@@ -9,8 +9,8 @@ import (
 	"github.com/rs/zerolog"
 )
 
-var _ storage.UserStorage = (*service)(nil)
-var _ storage.OrderStorage = (*service)(nil)
+var _ storage.UserStorage = (*Storage)(nil)
+var _ storage.OrderStorage = (*Storage)(nil)
 
 const (
 	serviceName = "psql"
@@ -20,18 +20,18 @@ const (
 )
 
 type (
-	service struct {
+	Storage struct {
 		config Config
 		pool   *pgxpool.Pool
 		ctx    context.Context
 	}
 
-	option func(svc *service) error
+	option func(svc *Storage) error
 )
 
 // WithConfig sets Config.
 func WithConfig(cfg Config) option {
-	return func(svc *service) error {
+	return func(svc *Storage) error {
 		svc.config = cfg
 		return nil
 	}
@@ -39,15 +39,15 @@ func WithConfig(cfg Config) option {
 
 // WithContext sets Context.
 func WithContext(ctx context.Context) option {
-	return func(svc *service) error {
+	return func(svc *Storage) error {
 		svc.ctx = ctx
 		return nil
 	}
 }
 
-// New creates a new service.
-func New(opts ...option) (*service, error) {
-	svc := &service{
+// New creates a new Storage.
+func New(opts ...option) (*Storage, error) {
+	svc := &Storage{
 		config: NewDefaultConfig(),
 	}
 
@@ -78,7 +78,7 @@ func New(opts ...option) (*service, error) {
 	return svc, nil
 }
 
-func (svc *service) Migrate(ctx context.Context) error {
+func (svc *Storage) Migrate(ctx context.Context) error {
 	logger := svc.Logger(ctx)
 	logger.Info().Msg("Creating Tables")
 
@@ -105,7 +105,7 @@ func (svc *service) Migrate(ctx context.Context) error {
 }
 
 // Ping checks db connection
-func (svc *service) Ping(ctx context.Context) error {
+func (svc *Storage) Ping(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, svc.config.timeout)
 	defer cancel()
 
@@ -113,7 +113,7 @@ func (svc *service) Ping(ctx context.Context) error {
 }
 
 // Close closes DB connection.
-func (svc *service) Close() error {
+func (svc *Storage) Close() error {
 	if svc.pool == nil {
 		return nil
 	}
@@ -121,8 +121,8 @@ func (svc *service) Close() error {
 	return nil
 }
 
-// Logger returns logger with service field set.
-func (svc *service) Logger(ctx context.Context) *zerolog.Logger {
+// Logger returns logger with Storage field set.
+func (svc *Storage) Logger(ctx context.Context) *zerolog.Logger {
 	_, logger := logging.GetCtxLogger(ctx)
 	logger = logger.With().Str(logging.ServiceKey, serviceName).Logger()
 

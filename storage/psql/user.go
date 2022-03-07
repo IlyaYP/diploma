@@ -11,7 +11,7 @@ import (
 
 // CreateUser creates a new model.User.
 // Returns ErrAlreadyExists if user exists.
-func (svc *service) CreateUser(ctx context.Context, user model.User) (model.User, error) {
+func (svc *Storage) CreateUser(ctx context.Context, user model.User) (model.User, error) {
 	logger := svc.Logger(ctx)
 	logger.UpdateContext(user.GetLoggerContext)
 
@@ -36,7 +36,7 @@ func (svc *service) CreateUser(ctx context.Context, user model.User) (model.User
 }
 
 // GetUserByLogin returns model.User by its login if exists.
-func (svc *service) GetUserByLogin(ctx context.Context, login string) (*model.User, error) {
+func (svc *Storage) GetUserByLogin(ctx context.Context, login string) (*model.User, error) {
 	logger := svc.Logger(ctx)
 	// Build input
 	user := model.User{

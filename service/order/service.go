@@ -50,12 +50,12 @@ func New(opts ...Option) (*service, error) {
 
 // CreateOrder creates a new model.Order.
 func (svc *service) CreateOrder(ctx context.Context, order model.Order) (model.Order, error) {
-	return model.Order{}, nil
+	return svc.OrderStorage.CreateOrder(ctx, order)
 }
 
 // GetOrdersByUser returns *[]model.Order by its login if exists.
 func (svc *service) GetOrdersByUser(ctx context.Context, login string) (*[]model.Order, error) {
-	return nil, nil
+	return svc.GetOrdersByUser(ctx, login)
 }
 
 // Logger returns logger with service field set.

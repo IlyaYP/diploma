@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/IlyaYP/diploma/pkg/logging"
+	"github.com/IlyaYP/diploma/service/order"
 	"github.com/IlyaYP/diploma/service/user"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/jwtauth/v5"
@@ -20,6 +21,7 @@ type (
 	Handler struct {
 		*chi.Mux
 		userSvc   user.Service
+		orderSvc  order.Service
 		tokenAuth *jwtauth.JWTAuth
 	}
 	Option func(h *Handler) error
@@ -28,6 +30,13 @@ type (
 func WithUserService(user user.Service) Option {
 	return func(h *Handler) error {
 		h.userSvc = user
+		return nil
+	}
+}
+
+func WithOrderService(order order.Service) Option {
+	return func(h *Handler) error {
+		h.orderSvc = order
 		return nil
 	}
 }

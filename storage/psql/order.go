@@ -9,7 +9,7 @@ import (
 )
 
 // CreateOrder creates a new model.Order.
-func (svc *service) CreateOrder(ctx context.Context, order model.Order) (model.Order, error) {
+func (svc *Storage) CreateOrder(ctx context.Context, order model.Order) (model.Order, error) {
 	logger := svc.Logger(ctx)
 	logger.UpdateContext(order.GetLoggerContext)
 
@@ -34,6 +34,6 @@ func (svc *service) CreateOrder(ctx context.Context, order model.Order) (model.O
 }
 
 // GetOrdersByUser returns *[]model.Order by its login if exists.
-func (svc *service) GetOrdersByUser(ctx context.Context, login string) (*[]model.Order, error) {
+func (svc *Storage) GetOrdersByUser(ctx context.Context, login string) (*[]model.Order, error) {
 	return nil, nil
 }

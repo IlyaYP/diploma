@@ -9,7 +9,6 @@ import (
 	"github.com/IlyaYP/diploma/pkg/logging"
 	"github.com/IlyaYP/diploma/service/order"
 	"github.com/IlyaYP/diploma/service/user"
-	"github.com/IlyaYP/diploma/storage"
 	"github.com/IlyaYP/diploma/storage/psql"
 	"github.com/caarlos0/env/v6"
 )
@@ -70,7 +69,7 @@ func (c Config) validate() error {
 }
 
 // BuildPsqlStorage builds psql.Storage dependency.
-func (c Config) BuildPsqlStorage(ctx context.Context) (storage.UserStorage, error) {
+func (c Config) BuildPsqlStorage(ctx context.Context) (*psql.Storage, error) {
 	st, err := psql.New(
 		psql.WithConfig(c.PSQLStorage),
 		psql.WithContext(ctx),
@@ -126,8 +125,14 @@ func (c Config) BuildServer(ctx context.Context) (*server.Server, error) {
 		return nil, fmt.Errorf("building server: %w", err)
 	}
 
+	orderSvc, err := c.BuildOrderService(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("building server: %w", err)
+	}
+	
 	r, err := handler.NewHandler(
 		handler.WithUserService(userSvc),
+		handler.WithOrderService(orderSvc),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("building server: %w", err)
