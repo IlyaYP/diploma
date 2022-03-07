@@ -58,7 +58,7 @@ var (
 	ErrNotFound         = &ErrResponse{HTTPStatusCode: 404, StatusText: "Resource not found."}
 	ErrMethodNotAllowed = &ErrResponse{HTTPStatusCode: 405, StatusText: "Method not allowed"}
 	ErrBadRequest       = &ErrResponse{HTTPStatusCode: 400, StatusText: "Bad request"}
-	ErrAlreadyExists    = &ErrResponse{HTTPStatusCode: 409, StatusText: "User exists"}
+	ErrAlreadyExists    = &ErrResponse{HTTPStatusCode: 409, StatusText: "Already exists"}
 	ErrInvalidLogin     = &ErrResponse{HTTPStatusCode: 401, StatusText: "Invalid login"}
 	ErrInvalidOrderNum  = &ErrResponse{HTTPStatusCode: 422, StatusText: "Invalid order number"} //422 — неверный формат номера заказа;
 

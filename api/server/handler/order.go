@@ -74,7 +74,7 @@ func (h *Handler) NewOrder(w http.ResponseWriter, r *http.Request) {
 		render.Render(w, r, ErrInvalidRequest(err))
 		return
 	}
-	
+
 	logger.Info().Msgf("NewOrder:%v", order.Number)
 }
 

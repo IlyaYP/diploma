@@ -91,7 +91,7 @@ func (svc *Storage) Migrate(ctx context.Context) error {
 		);
 		CREATE TABLE IF NOT EXISTS orders
 		(
-			num int not null,
+			num bigint not null,
 			status int not null,
 			accrual int,
 			uploaded_at timestamp    not null default now(),
