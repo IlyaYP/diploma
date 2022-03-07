@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/IlyaYP/diploma/model"
 	"github.com/IlyaYP/diploma/pkg"
 	"github.com/IlyaYP/diploma/pkg/logging"
@@ -53,7 +54,7 @@ func (h *Handler) NewOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	input := &model.Order{Number: ordernum, User: user.Login, Status: model.OrderStatusNew}
+	input := model.Order{Number: ordernum, User: user.Login, Status: model.OrderStatusNew}
 
 	logger.UpdateContext(input.GetLoggerContext)
 
@@ -63,7 +64,18 @@ func (h *Handler) NewOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logger.Info().Msgf("NewOrder:%v", ordernum)
+	order, err := h.orderSvc.CreateOrder(ctx, input)
+	if err != nil {
+		logger.Err(err).Msg("Error create order")
+		if errors.Is(err, pkg.ErrAlreadyExists) {
+			render.Render(w, r, ErrAlreadyExists)
+			return
+		}
+		render.Render(w, r, ErrInvalidRequest(err))
+		return
+	}
+	
+	logger.Info().Msgf("NewOrder:%v", order.Number)
 }
 
 // GetOrders Gets order list
