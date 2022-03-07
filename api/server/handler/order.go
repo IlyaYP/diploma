@@ -50,9 +50,10 @@ func (h *Handler) NewOrder(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		logger.Err(pkg.ErrInvalidLogin).Msg("GetOrders: can't get user from context")
 		render.Render(w, r, ErrInvalidLogin)
+		return
 	}
 
-	input := &model.Order{Number: ordernum, User: user.Login}
+	input := &model.Order{Number: ordernum, User: user.Login, Status: model.OrderStatusNew}
 
 	logger.UpdateContext(input.GetLoggerContext)
 

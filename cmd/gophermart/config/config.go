@@ -7,6 +7,7 @@ import (
 	"github.com/IlyaYP/diploma/api/server"
 	"github.com/IlyaYP/diploma/api/server/handler"
 	"github.com/IlyaYP/diploma/pkg/logging"
+	"github.com/IlyaYP/diploma/service/order"
 	"github.com/IlyaYP/diploma/service/user"
 	"github.com/IlyaYP/diploma/storage"
 	"github.com/IlyaYP/diploma/storage/psql"
@@ -99,6 +100,23 @@ func (c Config) BuildUserService(ctx context.Context) (user.Service, error) {
 
 	return svc, nil
 
+}
+
+// BuildOrderService builds test.Processor dependency.
+func (c Config) BuildOrderService(ctx context.Context) (order.Service, error) {
+	st, err := c.BuildPsqlStorage(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	svc, err := order.New(
+		order.WithOrderStorage(st),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("building test service: %w", err)
+	}
+
+	return svc, nil
 }
 
 // BuildServer builds REST API Server dependency.
