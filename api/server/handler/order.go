@@ -23,7 +23,7 @@ func (h *Handler) order(router chi.Router) {
 }
 
 // NewOrder Puts new order
-//200 — номер заказа уже был загружен этим пользователем;
+//200 — номер заказа уже был загружен этим пользователем; // TODO: later if needed
 //202 — новый номер заказа принят в обработку;
 //400 — неверный формат запроса;
 //401 — пользователь не аутентифицирован;
@@ -76,6 +76,8 @@ func (h *Handler) NewOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	logger.Info().Msgf("NewOrder:%v", order.Number)
+
+	render.Render(w, r, NewOrderAccepted)
 }
 
 // GetOrders Gets order list
