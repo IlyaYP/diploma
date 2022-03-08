@@ -53,6 +53,11 @@ func (svc *service) CreateOrder(ctx context.Context, order model.Order) (model.O
 	return svc.OrderStorage.CreateOrder(ctx, order)
 }
 
+// GetOrder returns model.Order by its number if exists.
+func (svc *service) GetOrder(ctx context.Context, orderNum uint64) (model.Order, error) {
+	return svc.OrderStorage.GetOrder(ctx, orderNum)
+}
+
 // GetOrdersByUser returns *[]model.Order by its login if exists.
 func (svc *service) GetOrdersByUser(ctx context.Context, login string) (*[]model.Order, error) {
 	return svc.GetOrdersByUser(ctx, login)

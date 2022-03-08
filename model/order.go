@@ -17,7 +17,7 @@ import (
 
 // Order keeps order data.
 type Order struct {
-	Number     int         `json:"number"`
+	Number     uint64      `json:"number"`
 	Status     OrderStatus `json:"status"`
 	Accrual    int         `json:"accrual"`
 	UploadedAt time.Time   `json:"uploaded_at"`
@@ -79,6 +79,6 @@ func (s OrderStatus) Validate() error {
 // GetLoggerContext enriches logger context with essential Order fields.
 func (o Order) GetLoggerContext(logCtx zerolog.Context) zerolog.Context {
 	logCtx = logCtx.Str("login", o.User)
-	logCtx = logCtx.Int("ordernum", o.Number)
+	logCtx = logCtx.Uint64("ordernum", o.Number)
 	return logCtx
 }

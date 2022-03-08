@@ -6,6 +6,7 @@ import (
 	"github.com/IlyaYP/diploma/model"
 	"github.com/IlyaYP/diploma/pkg"
 	"github.com/jackc/pgconn"
+	"github.com/jackc/pgx/v4"
 )
 
 // CreateOrder creates a new model.Order.
@@ -31,6 +32,31 @@ func (svc *Storage) CreateOrder(ctx context.Context, order model.Order) (model.O
 	logger.Info().Msg("Successfully created order")
 
 	return order, nil
+}
+
+// GetOrder returns model.Order by its number if exists.
+func (svc *Storage) GetOrder(ctx context.Context, orderNum uint64) (model.Order, error) {
+	logger := svc.Logger(ctx)
+	var orderStatus int
+	order := model.Order{}
+	err := svc.pool.QueryRow(ctx, "select * from orders where num=$1", orderNum).Scan(
+		&order.Number,
+		&orderStatus,
+		&order.Accrual,
+		&order.UploadedAt,
+		&order.User,
+	)
+	switch err {
+	case nil:
+		order.Status = model.NewOrderStatusFromInt(orderStatus)
+		return order, nil
+	case pgx.ErrNoRows:
+		//logger.Err(err).Msg("GetOrder")
+		return model.Order{}, pkg.ErrNotExists
+	default:
+		logger.Err(err).Msg("GetOrder")
+		return model.Order{}, err
+	}
 }
 
 // GetOrdersByUser returns *[]model.Order by its login if exists.

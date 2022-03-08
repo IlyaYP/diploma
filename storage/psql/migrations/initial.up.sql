@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS orders
 (
     num bigint not null,
 	status int not null,
-	accrual int,
+	accrual int not null default 0,
 	uploaded_at timestamp    not null default now(),
 	login varchar(64) not null,
     primary key (num),

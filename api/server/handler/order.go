@@ -23,7 +23,7 @@ func (h *Handler) order(router chi.Router) {
 }
 
 // NewOrder Puts new order
-//200 — номер заказа уже был загружен этим пользователем; // TODO: later if needed
+//200 — номер заказа уже был загружен этим пользователем;
 //202 — новый номер заказа принят в обработку;
 //400 — неверный формат запроса;
 //401 — пользователь не аутентифицирован;
@@ -40,7 +40,7 @@ func (h *Handler) NewOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ordernum, err := strconv.Atoi(string(b))
+	orderNum, err := strconv.ParseUint(string(b), 10, 64)
 	if err != nil {
 		render.Render(w, r, ErrServerError(err))
 		logger.Err(err).Msgf("NewOrder: wrong number %s", string(b))
@@ -54,13 +54,23 @@ func (h *Handler) NewOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	input := model.Order{Number: ordernum, User: user.Login, Status: model.OrderStatusNew}
+	input := model.Order{Number: orderNum, User: user.Login, Status: model.OrderStatusNew}
 
 	logger.UpdateContext(input.GetLoggerContext)
 
-	if !pkg.ValidLuhn(ordernum) {
+	if !pkg.ValidLuhn(orderNum) {
 		render.Render(w, r, ErrInvalidOrderNum)
-		logger.Err(pkg.ErrInvalidOrderNum).Msgf("NewOrder: wrong number %v", ordernum)
+		logger.Err(pkg.ErrInvalidOrderNum).Msgf("NewOrder: wrong number %v", orderNum)
+		return
+	}
+
+	// check if order exists
+	if order, err := h.orderSvc.GetOrder(ctx, orderNum); err == nil {
+		//fmt.Println("\n\n", order, "\n\n")
+		if order.User == user.Login { // 200 order already loaded by this user
+			return
+		}
+		render.Render(w, r, ErrAlreadyExists) // 409 order already loaded by other user
 		return
 	}
 
@@ -77,7 +87,7 @@ func (h *Handler) NewOrder(w http.ResponseWriter, r *http.Request) {
 
 	logger.Info().Msgf("NewOrder:%v", order.Number)
 
-	render.Render(w, r, NewOrderAccepted)
+	render.Render(w, r, NewOrderAccepted) // 202
 }
 
 // GetOrders Gets order list
