@@ -81,7 +81,7 @@ func (c Config) BuildPsqlStorage(ctx context.Context) (*psql.Storage, error) {
 	return st, nil
 }
 
-// BuildUserService builds user.Processor dependency.
+// BuildUserService builds user.Service dependency.
 func (c Config) BuildUserService(ctx context.Context) (user.Service, error) {
 	st, err := c.BuildPsqlStorage(ctx)
 	if err != nil {
@@ -101,7 +101,7 @@ func (c Config) BuildUserService(ctx context.Context) (user.Service, error) {
 
 }
 
-// BuildOrderService builds test.Processor dependency.
+// BuildOrderService builds order.Service dependency.
 func (c Config) BuildOrderService(ctx context.Context) (order.Service, error) {
 	st, err := c.BuildPsqlStorage(ctx)
 	if err != nil {
@@ -120,16 +120,41 @@ func (c Config) BuildOrderService(ctx context.Context) (order.Service, error) {
 
 // BuildServer builds REST API Server dependency.
 func (c Config) BuildServer(ctx context.Context) (*server.Server, error) {
-	userSvc, err := c.BuildUserService(ctx)
+	//userSvc, err := c.BuildUserService(ctx)
+	//if err != nil {
+	//	return nil, fmt.Errorf("building server: %w", err)
+	//}
+	//
+	//orderSvc, err := c.BuildOrderService(ctx)
+	//if err != nil {
+	//	return nil, fmt.Errorf("building server: %w", err)
+	//}
+
+	// Build Storage
+	st, err := c.BuildPsqlStorage(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("building server: %w", err)
+		return nil, err
 	}
 
-	orderSvc, err := c.BuildOrderService(ctx)
+	// Build User Service
+	userSvc, err := user.New(
+		user.WithConfig(c.UserService),
+		user.WithUserStorage(st),
+	)
+
 	if err != nil {
-		return nil, fmt.Errorf("building server: %w", err)
+		return nil, fmt.Errorf("building user service: %w", err)
 	}
-	
+
+	// Build Order Service
+	orderSvc, err := order.New(
+		order.WithOrderStorage(st),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("building order service: %w", err)
+	}
+
+	// Build REST API Service
 	r, err := handler.NewHandler(
 		handler.WithUserService(userSvc),
 		handler.WithOrderService(orderSvc),
@@ -137,6 +162,7 @@ func (c Config) BuildServer(ctx context.Context) (*server.Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("building server: %w", err)
 	}
+
 	s, err := server.New(
 		server.WithConfig(&c.APISever),
 		server.WithRouter(r),
