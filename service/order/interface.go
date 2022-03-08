@@ -13,5 +13,5 @@ type Service interface {
 	GetOrder(ctx context.Context, orderNum uint64) (model.Order, error)
 
 	// GetOrdersByUser returns *[]model.Order by its login if exists.
-	GetOrdersByUser(ctx context.Context, login string) (*[]model.Order, error)
+	GetOrdersByUser(ctx context.Context, login string) (*model.Orders, error)
 }

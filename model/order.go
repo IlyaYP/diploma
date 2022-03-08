@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 	"github.com/rs/zerolog"
+	"net/http"
 	"time"
 )
 
@@ -16,13 +17,16 @@ import (
 */
 
 // Order keeps order data.
-type Order struct {
-	Number     uint64      `json:"number"`
-	Status     OrderStatus `json:"status"`
-	Accrual    int         `json:"accrual"`
-	UploadedAt time.Time   `json:"uploaded_at"`
-	User       string
-}
+type (
+	Order struct {
+		Number     uint64      `json:"number"`
+		Status     OrderStatus `json:"status"`
+		Accrual    int         `json:"accrual,omitempty"`
+		UploadedAt time.Time   `json:"uploaded_at"`
+		User       string      `json:"-"`
+	}
+	Orders []Order
+)
 
 type OrderStatus string
 
@@ -73,6 +77,10 @@ func (s OrderStatus) Validate() error {
 		return fmt.Errorf("unknown value: %v", s)
 	}
 
+	return nil
+}
+
+func (*Orders) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
 

@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"encoding/json"
 	"errors"
 	"github.com/IlyaYP/diploma/model"
 	"github.com/IlyaYP/diploma/pkg"
@@ -101,19 +100,14 @@ func (h *Handler) GetOrders(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		logger.Err(pkg.ErrInvalidLogin).Msg("GetOrders: can't get user from context")
 		render.Render(w, r, ErrInvalidLogin)
-	}
-
-	//_, claims, _ := jwtauth.FromContext(r.Context())
-	////w.Write([]byte(fmt.Sprintf("protected area. hi %v", claims["login"])))
-	//login := fmt.Sprintf("%v", claims["login"])
-	res := struct {
-		Name string `json:"name"`
-	}{user.Login}
-	resJson, err := json.Marshal(res)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	w.Write(resJson)
+	orders, err := h.orderSvc.GetOrdersByUser(ctx, user.Login)
+	if err != nil {
+		render.Render(w, r, ErrServerError(err))
+		logger.Err(err).Msg("GetOrders: can't get urders from DB")
+		return
+	}
+	render.Render(w, r, orders)
 }

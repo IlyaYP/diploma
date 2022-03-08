@@ -2,11 +2,17 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/IlyaYP/diploma/cmd/gophermart/config"
 	"log"
 )
 
 func main() {
+	run(false)
+	//GeneralTests()
+
+}
+func run(test bool) error {
 	cfg, err := config.New()
 	if err != nil {
 		panic(err)
@@ -19,47 +25,67 @@ func main() {
 		panic(err)
 	}
 
-	log.Fatal(srv.ListenAndServe())
+	if !test {
+		return srv.ListenAndServe()
+	}
+	return nil
 
 }
 
-// For Tests
-/*
+func GeneralTests() error {
+	cfg, err := config.New()
+	if err != nil {
+		return err
+	}
+	ctx := context.Background()
+
 	userSvc, err := cfg.BuildUserService(ctx)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	fmt.Println()
 
-	if _, err := userSvc.Register(ctx, "vasya4", "God"); err != nil {
+	if _, err := userSvc.Register(ctx, "vasya", "God"); err != nil {
 		log.Println(err)
 	}
 
 	fmt.Println()
 
-	if _, err := userSvc.Register(ctx, "vasya2", "God"); err != nil {
+	if _, err := userSvc.Register(ctx, "kolya", "God"); err != nil {
 		log.Println(err)
 	}
 
 	fmt.Println()
 
-	user, err := userSvc.Login(ctx, "vasya2", "God")
+	if user, err := userSvc.Login(ctx, "vasya", "God"); err != nil {
+		log.Println(err)
+	} else {
+		fmt.Println(user)
+	}
+
+	fmt.Println()
+
+	if user, err := userSvc.Login(ctx, "kolya", "God"); err != nil {
+		log.Println(err)
+	} else {
+		fmt.Println(user)
+	}
+
+	fmt.Println()
+
+	orderSvc, err := cfg.BuildOrderService(ctx)
 	if err != nil {
+		return err
+	}
+
+	fmt.Println()
+
+	if orders, err := orderSvc.GetOrdersByUser(ctx, "vasya"); err != nil {
 		log.Println(err)
+	} else {
+		fmt.Println(orders)
 	}
 
-	fmt.Println(user)
-
-	user1, err1 := userSvc.Login(ctx, "vasya3", "God!")
-	if err1 != nil {
-		log.Println(err1)
-	}
-	fmt.Println(user1)
-
-	//user2, err2 := userSvc.Login(ctx, "vasya2", "God!")
-	//if err2 != nil {
-	//	fmt.Println(err2)
-	//}
-	//fmt.Println(user2)
-*/
+	return nil
+}

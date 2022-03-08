@@ -9,7 +9,7 @@ import (
 // User keeps user data.
 type User struct {
 	Login    string `json:"login"`
-	Password string `json:"password"`
+	Password string `json:"-"`
 }
 
 // GetLoggerContext enriches logger context with essential User fields.

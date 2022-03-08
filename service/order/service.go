@@ -59,8 +59,8 @@ func (svc *service) GetOrder(ctx context.Context, orderNum uint64) (model.Order,
 }
 
 // GetOrdersByUser returns *[]model.Order by its login if exists.
-func (svc *service) GetOrdersByUser(ctx context.Context, login string) (*[]model.Order, error) {
-	return svc.GetOrdersByUser(ctx, login)
+func (svc *service) GetOrdersByUser(ctx context.Context, login string) (*model.Orders, error) {
+	return svc.OrderStorage.GetOrdersByUser(ctx, login)
 }
 
 // Logger returns logger with service field set.
