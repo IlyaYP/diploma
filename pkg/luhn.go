@@ -38,7 +38,7 @@ func checksum(number uint64) uint64 {
 
 func TestLunh() {
 	var i uint64
-	for i = 0; i < 100; i++ {
+	for i = 1234567890; i < 1234567900; i++ {
 		x := CalculateLuhn(i)
 		fmt.Printf("%v:%v %v %v\n", i, x, i*10+x, ValidLuhn(i*10+x))
 	}

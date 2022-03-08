@@ -61,5 +61,28 @@ func (svc *Storage) GetOrder(ctx context.Context, orderNum uint64) (model.Order,
 
 // GetOrdersByUser returns *[]model.Order by its login if exists.
 func (svc *Storage) GetOrdersByUser(ctx context.Context, login string) (*[]model.Order, error) {
-	return nil, nil
+	logger := svc.Logger(ctx)
+	var orders []model.Order
+	ordersRows, _ := svc.pool.Query(ctx, "select * from orders where login=$1", login)
+	defer ordersRows.Close()
+
+	for ordersRows.Next() {
+		order := model.Order{}
+		var orderStatus int
+		err := ordersRows.Scan(
+			&order.Number,
+			&orderStatus,
+			&order.Accrual,
+			&order.UploadedAt,
+			&order.User,
+		)
+		if err != nil {
+			logger.Err(err).Msg("GetOrdersByUser")
+			continue
+		}
+		order.Status = model.NewOrderStatusFromInt(orderStatus)
+		orders = append(orders, order)
+	}
+
+	return &orders, nil
 }
