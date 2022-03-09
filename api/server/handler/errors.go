@@ -55,7 +55,8 @@ func ErrRender(err error) render.Renderer {
 }
 
 var (
-	NewOrderAccepted    = &ErrResponse{HTTPStatusCode: 202, StatusText: "New order accepted."}
+	NewOrderAccepted    = &ErrResponse{HTTPStatusCode: 202, StatusText: "New order accepted"}
+	ErrNoData           = &ErrResponse{HTTPStatusCode: 204, StatusText: "No data"}
 	ErrNotFound         = &ErrResponse{HTTPStatusCode: 404, StatusText: "Resource not found."}
 	ErrMethodNotAllowed = &ErrResponse{HTTPStatusCode: 405, StatusText: "Method not allowed"}
 	ErrBadRequest       = &ErrResponse{HTTPStatusCode: 400, StatusText: "Bad request"}

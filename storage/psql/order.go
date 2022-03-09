@@ -63,8 +63,16 @@ func (svc *Storage) GetOrder(ctx context.Context, orderNum uint64) (model.Order,
 func (svc *Storage) GetOrdersByUser(ctx context.Context, login string) (*model.Orders, error) {
 	logger := svc.Logger(ctx)
 	var orders model.Orders
-	ordersRows, _ := svc.pool.Query(ctx, "select * from orders where login=$1", login)
+	ordersRows, err := svc.pool.Query(
+		ctx,
+		"select * from orders where login=$1 ORDER BY uploaded_at ASC",
+		login,
+	)
 	defer ordersRows.Close()
+	if err != nil {
+		logger.Err(err).Msg("GetOrdersByUser")
+		return nil, err //pgx.ErrNoRows
+	}
 
 	for ordersRows.Next() {
 		order := model.Order{}
@@ -82,6 +90,10 @@ func (svc *Storage) GetOrdersByUser(ctx context.Context, login string) (*model.O
 		}
 		order.Status = model.NewOrderStatusFromInt(orderStatus)
 		orders = append(orders, order)
+	}
+
+	if len(orders) == 0 {
+		return nil, pkg.ErrNoData
 	}
 
 	return &orders, nil

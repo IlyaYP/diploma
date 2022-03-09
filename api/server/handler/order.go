@@ -105,9 +105,14 @@ func (h *Handler) GetOrders(w http.ResponseWriter, r *http.Request) {
 
 	orders, err := h.orderSvc.GetOrdersByUser(ctx, user.Login)
 	if err != nil {
+		if errors.Is(err, pkg.ErrNoData) {
+			render.Render(w, r, ErrNoData)
+			return
+		}
+		logger.Err(err).Msg("GetOrders: can't get orders from DB")
 		render.Render(w, r, ErrServerError(err))
-		logger.Err(err).Msg("GetOrders: can't get urders from DB")
 		return
 	}
+
 	render.Render(w, r, orders)
 }

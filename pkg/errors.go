@@ -3,6 +3,7 @@ package pkg
 import "errors"
 
 var (
+	ErrNoData          = errors.New("no data")
 	ErrInvalidInput    = errors.New("invalid input")
 	ErrInvalidLogin    = errors.New("invalid login")
 	ErrInvalidPassword = errors.New("wrong password")

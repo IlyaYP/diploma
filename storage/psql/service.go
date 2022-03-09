@@ -94,7 +94,7 @@ func (svc *Storage) Migrate(ctx context.Context) error {
 			num NUMERIC not null,
 			status int not null,
 			accrual int not null default 0,
-			uploaded_at timestamp not null default now(),
+			uploaded_at timestamp with time zone not null default now(),
 			login varchar(64) not null,
 			primary key (num),
 			foreign key (login) references users (login)
