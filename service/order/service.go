@@ -111,3 +111,9 @@ func (svc *service) Logger(ctx context.Context) *zerolog.Logger {
 
 	return &logger
 }
+
+// GetBalanceByUser return model.Balance
+// select SUM(accrual) from orders where login='vasya' and status=4;
+func (svc *service) GetBalanceByUser(ctx context.Context, login string) (model.Balance, error) {
+	return svc.OrderStorage.GetBalanceByUser(ctx, login)
+}

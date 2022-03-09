@@ -145,9 +145,8 @@ func (svc *Storage) UpdateOrder(ctx context.Context, order model.Order) (model.O
 	logger := svc.Logger(ctx)
 	logger.UpdateContext(order.GetLoggerContext)
 
-	// update orders set status=2 where num = 12345678903
 	_, err := svc.pool.Exec(ctx,
-		`update orders set status=$1, accrual=$2where num=$3`,
+		`update orders set status=$1, accrual=$2 where num=$3`,
 		order.Status.Int(),
 		order.Accrual,
 		order.Number,
@@ -167,4 +166,32 @@ func (svc *Storage) UpdateOrder(ctx context.Context, order model.Order) (model.O
 	}
 
 	return order, nil
+}
+
+// GetBalanceByUser return model.Balance
+//SELECT t1.current,  t2.withdrawn
+//FROM (select SUM(accrual) as current from orders where login='vasya' and status=4) as t1,
+//(select SUM(sum) as withdrawn from withdrawals where login='vasya') as t2;
+func (svc *Storage) GetBalanceByUser(ctx context.Context, login string) (model.Balance, error) {
+	logger := svc.Logger(ctx)
+	balance := model.Balance{}
+	err := svc.pool.QueryRow(ctx,
+		`SELECT * FROM 
+			(select SUM(accrual) as current from orders where login=$1 and status=4) as t1,
+			(select SUM(sum) as withdrawn from withdrawals where login=$1) as t2;`,
+		login).
+		Scan(
+			&balance.Current,
+			&balance.Withdrawn,
+		)
+	switch err {
+	case nil:
+		return balance, nil
+	case pgx.ErrNoRows:
+		logger.Err(err).Msg("GetBalanceByUser")
+		return model.Balance{}, pkg.ErrNotExists
+	default:
+		logger.Err(err).Msg("GetBalanceByUser")
+		return model.Balance{}, err
+	}
 }

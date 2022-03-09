@@ -36,4 +36,7 @@ type OrderStorage interface {
 
 	// UpdateOrder updates model.Order.
 	UpdateOrder(ctx context.Context, order model.Order) (model.Order, error)
+
+	// GetBalanceByUser return model.Balance
+	GetBalanceByUser(ctx context.Context, login string) (model.Balance, error)
 }

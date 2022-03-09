@@ -2,8 +2,12 @@ package handler
 
 import (
 	"encoding/json"
+	"github.com/IlyaYP/diploma/model"
+	"github.com/IlyaYP/diploma/pkg"
+	"github.com/IlyaYP/diploma/pkg/logging"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/jwtauth/v5"
+	"github.com/go-chi/render"
 	"net/http"
 )
 
@@ -17,16 +21,29 @@ func (h *Handler) balance(router chi.Router) {
 
 // GetBalance Gets balance
 func (h *Handler) GetBalance(w http.ResponseWriter, r *http.Request) {
-	res := struct {
-		Name string `json:"name"`
-	}{"GetBalance"}
-	resJson, err := json.Marshal(res)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	ctx, _ := logging.GetCtxLogger(r.Context()) // correlationID is created here
+	logger := h.Logger(ctx)
+	logger.Info().Msg("GetBalance")
+
+	user, ok := model.UserFromContext(ctx)
+	if !ok {
+		logger.Err(pkg.ErrInvalidLogin).Msg("GetBalance: can't get user from context")
+		render.Render(w, r, ErrInvalidLogin)
 		return
 	}
 
-	w.Write(resJson)
+	balance, err := h.orderSvc.GetBalanceByUser(ctx, user.Login)
+	if err != nil {
+		//if errors.Is(err, pkg.ErrNoData) {
+		//	render.Render(w, r, ErrNoData)
+		//	return
+		//}
+		logger.Err(err).Msg("GetBalance: can't get balance from order service")
+		render.Render(w, r, ErrServerError(err))
+		return
+	}
+
+	render.Render(w, r, &balance)
 }
 
 // Withdraw Request withdraw
