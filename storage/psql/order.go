@@ -100,7 +100,7 @@ func (svc *Storage) GetOrdersByUser(ctx context.Context, login string) (*model.O
 }
 
 // GetOrdersByStatus returns *model.Orders by its status if exists.
-func (svc *Storage) GetOrdersByStatus(ctx context.Context, status model.OrderStatus) (*model.Orders, error) {
+func (svc *Storage) GetOrdersByStatus(ctx context.Context, status model.OrderStatus) (model.Orders, error) {
 	logger := svc.Logger(ctx)
 	var orders model.Orders
 	ordersRows, err := svc.pool.Query(
@@ -136,6 +136,35 @@ func (svc *Storage) GetOrdersByStatus(ctx context.Context, status model.OrderSta
 		return nil, pkg.ErrNoData
 	}
 
-	return &orders, nil
+	return orders, nil
 
+}
+
+// UpdateOrder updates  model.Order.
+func (svc *Storage) UpdateOrder(ctx context.Context, order model.Order) (model.Order, error) {
+	logger := svc.Logger(ctx)
+	logger.UpdateContext(order.GetLoggerContext)
+
+	// update orders set status=2 where num = 12345678903
+	_, err := svc.pool.Exec(ctx,
+		`update orders set status=$1, accrual=$2where num=$3`,
+		order.Status.Int(),
+		order.Accrual,
+		order.Number,
+	)
+
+	if err != nil {
+		//var pgErr *pgconn.PgError
+		//if errors.As(err, &pgErr) {
+		//	if pgErr.Code == "23505" {
+		//		logger.Err(err).Msg("Error updating order")
+		//		return model.Order{}, pkg.ErrAlreadyExists
+		//	}
+		//}
+
+		logger.Err(err).Msg("Error updating order")
+		return model.Order{}, err
+	}
+
+	return order, nil
 }

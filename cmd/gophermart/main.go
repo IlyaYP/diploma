@@ -8,8 +8,8 @@ import (
 )
 
 func main() {
-	run(false)
-	//GeneralTests()
+	//run(false)
+	GeneralTests()
 
 }
 func run(test bool) error {
@@ -85,6 +85,14 @@ func GeneralTests() error {
 		log.Println(err)
 	} else {
 		fmt.Println(orders)
+	}
+
+	if err := orderSvc.ProcessNewOrders(ctx); err != nil {
+		log.Println(err)
+	}
+
+	if err := orderSvc.ProcessOrders(ctx); err != nil {
+		log.Println(err)
 	}
 
 	return nil

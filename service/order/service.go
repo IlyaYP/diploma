@@ -7,6 +7,7 @@ import (
 	"github.com/IlyaYP/diploma/pkg/logging"
 	"github.com/IlyaYP/diploma/storage"
 	"github.com/rs/zerolog"
+	"math/rand"
 )
 
 var _ Service = (*service)(nil)
@@ -68,7 +69,20 @@ func (svc *service) ProcessOrder(ctx context.Context, order model.Order) error {
 	return nil
 }
 
-func (svc *service) ProcessOrders(ctx context.Context, orders ...*model.Order) error {
+func (svc *service) ProcessOrders(ctx context.Context) error {
+	orders, err := svc.OrderStorage.GetOrdersByStatus(ctx, model.OrderStatusProcessing)
+	if err != nil {
+		return err
+	}
+
+	for i, _ := range orders {
+		// TODO: request from accrual
+		orders[i].Accrual = int(1000 * rand.Float32())
+		orders[i].Status = model.OrderStatusProcessed
+		if _, err := svc.OrderStorage.UpdateOrder(ctx, orders[i]); err != nil {
+			return err
+		}
+	}
 
 	return nil
 }
@@ -76,12 +90,17 @@ func (svc *service) ProcessOrders(ctx context.Context, orders ...*model.Order) e
 func (svc *service) ProcessNewOrders(ctx context.Context) error {
 	orders, err := svc.OrderStorage.GetOrdersByStatus(ctx, model.OrderStatusNew)
 	if err != nil {
-
+		return err
 	}
 
-	for _, order := range *orders {
-		order.Status = model.OrderStatusProcessing
+	for i, _ := range orders {
+		// TODO: send to accrual
+		orders[i].Status = model.OrderStatusProcessing
+		if _, err := svc.OrderStorage.UpdateOrder(ctx, orders[i]); err != nil {
+			return err
+		}
 	}
+
 	return nil
 }
 

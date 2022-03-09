@@ -18,9 +18,9 @@ type Service interface {
 	// ProcessOrder do something with order
 	ProcessOrder(ctx context.Context, order model.Order) error
 
+	// ProcessOrders do something with order
+	ProcessOrders(ctx context.Context) error
+
 	// ProcessNewOrders do something with order
 	ProcessNewOrders(ctx context.Context) error
-
-	// ProcessOrders do something with order
-	ProcessOrders(ctx context.Context, orders ...*model.Order) error
 }
