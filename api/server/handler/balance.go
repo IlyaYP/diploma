@@ -3,10 +3,12 @@ package handler
 import (
 	"encoding/json"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/jwtauth/v5"
 	"net/http"
 )
 
 func (h *Handler) balance(router chi.Router) {
+	router.Use(jwtauth.Verifier(h.tokenAuth))
 	router.Use(h.UserContext)
 	router.Get("/", h.GetBalance)
 	router.Post("/withdraw", h.Withdraw)

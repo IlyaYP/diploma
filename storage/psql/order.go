@@ -59,7 +59,7 @@ func (svc *Storage) GetOrder(ctx context.Context, orderNum uint64) (model.Order,
 	}
 }
 
-// GetOrdersByUser returns *[]model.Order by its login if exists.
+// GetOrdersByUser returns *model.Orders by its login if exists.
 func (svc *Storage) GetOrdersByUser(ctx context.Context, login string) (*model.Orders, error) {
 	logger := svc.Logger(ctx)
 	var orders model.Orders
@@ -97,4 +97,45 @@ func (svc *Storage) GetOrdersByUser(ctx context.Context, login string) (*model.O
 	}
 
 	return &orders, nil
+}
+
+// GetOrdersByStatus returns *model.Orders by its status if exists.
+func (svc *Storage) GetOrdersByStatus(ctx context.Context, status model.OrderStatus) (*model.Orders, error) {
+	logger := svc.Logger(ctx)
+	var orders model.Orders
+	ordersRows, err := svc.pool.Query(
+		ctx,
+		"select * from orders where status=$1 ORDER BY uploaded_at ASC",
+		status.Int(),
+	)
+	defer ordersRows.Close()
+	if err != nil {
+		logger.Err(err).Msg("GetOrdersByStatus")
+		return nil, err //pgx.ErrNoRows
+	}
+
+	for ordersRows.Next() {
+		order := model.Order{}
+		var orderStatus int
+		err := ordersRows.Scan(
+			&order.Number,
+			&orderStatus,
+			&order.Accrual,
+			&order.UploadedAt,
+			&order.User,
+		)
+		if err != nil {
+			logger.Err(err).Msg("GetOrdersByStatus")
+			continue
+		}
+		order.Status = model.NewOrderStatusFromInt(orderStatus)
+		orders = append(orders, order)
+	}
+
+	if len(orders) == 0 {
+		return nil, pkg.ErrNoData
+	}
+
+	return &orders, nil
+
 }

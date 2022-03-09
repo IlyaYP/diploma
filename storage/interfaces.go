@@ -28,6 +28,9 @@ type OrderStorage interface {
 	// GetOrder returns model.Order by its number if exists.
 	GetOrder(ctx context.Context, orderNum uint64) (model.Order, error)
 
-	// GetOrdersByUser returns *[]model.Order by its login if exists.
+	// GetOrdersByUser returns *model.Orders by its login if exists.
 	GetOrdersByUser(ctx context.Context, login string) (*model.Orders, error)
+
+	// GetOrdersByStatus returns *model.Orders by its status if exists.
+	GetOrdersByStatus(ctx context.Context, status model.OrderStatus) (*model.Orders, error)
 }

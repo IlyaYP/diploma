@@ -63,6 +63,28 @@ func (svc *service) GetOrdersByUser(ctx context.Context, login string) (*model.O
 	return svc.OrderStorage.GetOrdersByUser(ctx, login)
 }
 
+// ProcessOrder do something with order
+func (svc *service) ProcessOrder(ctx context.Context, order model.Order) error {
+	return nil
+}
+
+func (svc *service) ProcessOrders(ctx context.Context, orders ...*model.Order) error {
+
+	return nil
+}
+
+func (svc *service) ProcessNewOrders(ctx context.Context) error {
+	orders, err := svc.OrderStorage.GetOrdersByStatus(ctx, model.OrderStatusNew)
+	if err != nil {
+
+	}
+
+	for _, order := range *orders {
+		order.Status = model.OrderStatusProcessing
+	}
+	return nil
+}
+
 // Logger returns logger with service field set.
 func (svc *service) Logger(ctx context.Context) *zerolog.Logger {
 	_, logger := logging.GetCtxLogger(ctx)
