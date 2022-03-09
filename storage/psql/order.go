@@ -179,11 +179,11 @@ func (svc *Storage) GetBalanceByUser(ctx context.Context, login string) (model.B
 		`SELECT * FROM 
 			(select SUM(accrual) as current from orders where login=$1 and status=4) as t1,
 			(select SUM(sum) as withdrawn from withdrawals where login=$1) as t2;`,
-		login).
-		Scan(
-			&balance.Current,
-			&balance.Withdrawn,
-		)
+		login,
+	).Scan(
+		&balance.Current,
+		&balance.Withdrawn,
+	)
 	switch err {
 	case nil:
 		return balance, nil
@@ -194,4 +194,41 @@ func (svc *Storage) GetBalanceByUser(ctx context.Context, login string) (model.B
 		logger.Err(err).Msg("GetBalanceByUser")
 		return model.Balance{}, err
 	}
+}
+
+// GetWithdrawalsByUser returns *model.Withdrawals by login if exists.
+func (svc *Storage) GetWithdrawalsByUser(ctx context.Context, login string) (*model.Withdrawals, error) {
+	logger := svc.Logger(ctx)
+	var withdrawals model.Withdrawals
+	withdrawalsRows, err := svc.pool.Query(
+		ctx,
+		"select * from withdrawals where login=$1 ORDER BY processed_at ASC",
+		login,
+	)
+	defer withdrawalsRows.Close()
+	if err != nil {
+		logger.Err(err).Msg("GetWithdrawalsByUser")
+		return nil, err //pgx.ErrNoRows
+	}
+
+	for withdrawalsRows.Next() {
+		withdrawal := model.Withdrawal{}
+		err := withdrawalsRows.Scan( //ordernum | sum | processed_at | login
+			&withdrawal.Order,
+			&withdrawal.Sum,
+			&withdrawal.ProcessedAt,
+			&withdrawal.User,
+		)
+		if err != nil {
+			logger.Err(err).Msg("GetWithdrawalsByUser")
+			continue
+		}
+		withdrawals = append(withdrawals, withdrawal)
+	}
+
+	if len(withdrawals) == 0 {
+		return nil, pkg.ErrNoData
+	}
+
+	return &withdrawals, nil
 }

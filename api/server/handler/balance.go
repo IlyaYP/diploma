@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"github.com/IlyaYP/diploma/model"
 	"github.com/IlyaYP/diploma/pkg"
 	"github.com/IlyaYP/diploma/pkg/logging"
@@ -50,7 +51,7 @@ func (h *Handler) GetBalance(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) Withdraw(w http.ResponseWriter, r *http.Request) {
 	res := struct {
 		Name string `json:"name"`
-	}{"Withdraw"}
+	}{"Withdrawal"}
 	resJson, err := json.Marshal(res)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -62,14 +63,27 @@ func (h *Handler) Withdraw(w http.ResponseWriter, r *http.Request) {
 
 // GetWithdrawals history
 func (h *Handler) GetWithdrawals(w http.ResponseWriter, r *http.Request) {
-	res := struct {
-		Name string `json:"name"`
-	}{"GetWithdrawals"}
-	resJson, err := json.Marshal(res)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	ctx, _ := logging.GetCtxLogger(r.Context()) // correlationID is created here
+	logger := h.Logger(ctx)
+	logger.Info().Msg("GetWithdrawals")
+
+	user, ok := model.UserFromContext(ctx)
+	if !ok {
+		logger.Err(pkg.ErrInvalidLogin).Msg("GetWithdrawals: can't get user from context")
+		render.Render(w, r, ErrInvalidLogin)
 		return
 	}
 
-	w.Write(resJson)
+	withdrawals, err := h.orderSvc.GetWithdrawalsByUser(ctx, user.Login)
+	if err != nil {
+		if errors.Is(err, pkg.ErrNoData) {
+			render.Render(w, r, ErrNoData)
+			return
+		}
+		logger.Err(err).Msg("GetWithdrawals: can't get orders from DB")
+		render.Render(w, r, ErrServerError(err))
+		return
+	}
+
+	render.Render(w, r, withdrawals)
 }

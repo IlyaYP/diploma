@@ -117,3 +117,8 @@ func (svc *service) Logger(ctx context.Context) *zerolog.Logger {
 func (svc *service) GetBalanceByUser(ctx context.Context, login string) (model.Balance, error) {
 	return svc.OrderStorage.GetBalanceByUser(ctx, login)
 }
+
+// GetWithdrawalsByUser returns *model.Withdrawals by login if exists.
+func (svc *service) GetWithdrawalsByUser(ctx context.Context, login string) (*model.Withdrawals, error) {
+	return svc.OrderStorage.GetWithdrawalsByUser(ctx, login)
+}

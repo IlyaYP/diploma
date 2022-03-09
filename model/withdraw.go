@@ -20,21 +20,29 @@ import (
 }
 */
 
-// Withdraw keeps withdraw data.
+// Withdrawal keeps withdraw data.
 type (
-	Withdraw struct {
+	Withdrawal struct {
 		Order       uint64    `json:"order"`
 		Sum         int       `json:"sum"`
 		ProcessedAt time.Time `json:"processed_at"`
 		User        string    `json:"-"`
 	}
-	Withdrawals []Withdraw
+	Withdrawals []Withdrawal
 
 	Balance struct {
 		Current   int `json:"current"`
 		Withdrawn int `json:"withdrawn"`
 	}
 )
+
+func (*Withdrawal) Render(w http.ResponseWriter, r *http.Request) error {
+	return nil
+}
+
+func (*Withdrawals) Render(w http.ResponseWriter, r *http.Request) error {
+	return nil
+}
 
 func (*Balance) Render(w http.ResponseWriter, r *http.Request) error {
 	return nil
