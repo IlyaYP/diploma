@@ -46,6 +46,8 @@ func (h *Handler) NewOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	orderNumSt := strconv.FormatUint(orderNum, 10)
+
 	user, ok := model.UserFromContext(ctx)
 	if !ok {
 		logger.Err(pkg.ErrInvalidLogin).Msg("GetOrders: can't get user from context")
@@ -53,7 +55,7 @@ func (h *Handler) NewOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	input := model.Order{Number: strconv.FormatUint(orderNum, 10),
+	input := model.Order{Number: orderNumSt,
 		User: user.Login, Status: model.OrderStatusNew}
 
 	logger.UpdateContext(input.GetLoggerContext)
@@ -65,7 +67,7 @@ func (h *Handler) NewOrder(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// check if order exists   TODO: maybe move to order service
-	if order, err := h.orderSvc.GetOrder(ctx, orderNum); err == nil {
+	if order, err := h.orderSvc.GetOrder(ctx, orderNumSt); err == nil {
 		//fmt.Println("\n\n", order, "\n\n")
 		if order.User == user.Login { // 200 order already loaded by this user
 			return

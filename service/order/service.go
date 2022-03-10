@@ -56,7 +56,7 @@ func (svc *service) CreateOrder(ctx context.Context, order model.Order) (model.O
 }
 
 // GetOrder returns model.Order by its number if exists.
-func (svc *service) GetOrder(ctx context.Context, orderNum uint64) (model.Order, error) {
+func (svc *service) GetOrder(ctx context.Context, orderNum string) (model.Order, error) {
 	return svc.OrderStorage.GetOrder(ctx, orderNum)
 }
 

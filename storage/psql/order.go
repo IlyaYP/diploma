@@ -36,7 +36,7 @@ func (svc *Storage) CreateOrder(ctx context.Context, order model.Order) (model.O
 }
 
 // GetOrder returns model.Order by its number if exists.
-func (svc *Storage) GetOrder(ctx context.Context, orderNum uint64) (model.Order, error) {
+func (svc *Storage) GetOrder(ctx context.Context, orderNum string) (model.Order, error) {
 	logger := svc.Logger(ctx)
 	var orderStatus int
 	order := model.Order{}
