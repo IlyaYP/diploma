@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/go-chi/render"
 	"net/http"
+	"strconv"
 )
 
 func (h *Handler) balance(router chi.Router) {
@@ -82,10 +83,14 @@ func (h *Handler) Withdraw(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	withdrawal.User = user.Login
+	order, err := strconv.ParseUint(withdrawal.Order, 10, 64)
+	if err != nil {
+		logger.Err(err).Msgf("Withdraw: can't parse %v", withdrawal.Order)
+	}
 
-	if !pkg.ValidLuhn(withdrawal.Order) {
+	if !pkg.ValidLuhn(order) {
 		render.Render(w, r, ErrInvalidOrderNum)
-		logger.Err(pkg.ErrInvalidOrderNum).Msgf("NewOrder: wrong order number %v", withdrawal.Order)
+		logger.Err(pkg.ErrInvalidOrderNum).Msgf("Withdraw: ValidLuhn wrong order number %v", order)
 		return
 	}
 

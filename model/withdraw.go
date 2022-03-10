@@ -25,7 +25,7 @@ import (
 // Withdrawal keeps withdraw data.
 type (
 	Withdrawal struct {
-		Order       uint64    `json:"order"`
+		Order       string    `json:"order"`
 		Sum         float64   `json:"sum"`
 		ProcessedAt time.Time `json:"processed_at,omitempty"`
 		User        string    `json:"-"`
@@ -39,7 +39,7 @@ type (
 )
 
 func (w *Withdrawal) Bind(r *http.Request) error {
-	if w.Order == 0 {
+	if w.Order == "" {
 		return fmt.Errorf("Order is a required field")
 	}
 	if w.Sum == 0 {
@@ -63,7 +63,7 @@ func (*Balance) Render(w http.ResponseWriter, r *http.Request) error {
 // GetLoggerContext enriches logger context with essential Order fields.
 func (w *Withdrawal) GetLoggerContext(logCtx zerolog.Context) zerolog.Context {
 	logCtx = logCtx.Str("login", w.User)
-	logCtx = logCtx.Uint64("ordernum", w.Order)
+	logCtx = logCtx.Str("ordernum", w.Order)
 	logCtx = logCtx.Float64("sum", w.Sum)
 	return logCtx
 }

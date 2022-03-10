@@ -53,7 +53,8 @@ func (h *Handler) NewOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	input := model.Order{Number: orderNum, User: user.Login, Status: model.OrderStatusNew}
+	input := model.Order{Number: strconv.FormatUint(orderNum, 10),
+		User: user.Login, Status: model.OrderStatusNew}
 
 	logger.UpdateContext(input.GetLoggerContext)
 

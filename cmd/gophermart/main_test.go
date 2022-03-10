@@ -88,25 +88,25 @@ func GeneralTests() error {
 		return err
 	}
 
-	if _, err := orderSvc.CreateOrder(ctx, model.Order{Number: 12345678903,
+	if _, err := orderSvc.CreateOrder(ctx, model.Order{Number: "12345678903",
 		Status: model.OrderStatusNew,
 		User:   "vasya"}); err != nil {
 		return err
 	}
 
-	if _, err := orderSvc.CreateOrder(ctx, model.Order{Number: 12345678911,
+	if _, err := orderSvc.CreateOrder(ctx, model.Order{Number: "12345678911",
 		Status: model.OrderStatusNew,
 		User:   "vasya"}); err != nil {
 		return err
 	}
 
-	if _, err := orderSvc.CreateOrder(ctx, model.Order{Number: 12345678929,
+	if _, err := orderSvc.CreateOrder(ctx, model.Order{Number: "12345678929",
 		Status: model.OrderStatusNew,
 		User:   "kolya"}); err != nil {
 		return err
 	}
 
-	if _, err := orderSvc.CreateOrder(ctx, model.Order{Number: 12345678937,
+	if _, err := orderSvc.CreateOrder(ctx, model.Order{Number: "12345678937",
 		Status: model.OrderStatusNew,
 		User:   "kolya"}); err != nil {
 		return err
@@ -126,25 +126,25 @@ func GeneralTests() error {
 		fmt.Println(orders)
 	}
 
-	if err := orderSvc.NewWithdrawal(ctx, model.Withdrawal{Order: 22345678902,
+	if err := orderSvc.NewWithdrawal(ctx, model.Withdrawal{Order: "22345678902",
 		Sum:  100,
 		User: "vasya"}); err != nil {
 		log.Println(err)
 	}
 
-	if err := orderSvc.NewWithdrawal(ctx, model.Withdrawal{Order: 22345678910,
+	if err := orderSvc.NewWithdrawal(ctx, model.Withdrawal{Order: "22345678910",
 		Sum:  100,
 		User: "vasya"}); err != nil {
 		log.Println(err)
 	}
 
-	if err := orderSvc.NewWithdrawal(ctx, model.Withdrawal{Order: 22345678928,
+	if err := orderSvc.NewWithdrawal(ctx, model.Withdrawal{Order: "22345678928",
 		Sum:  2000,
 		User: "vasya"}); err != nil {
 		log.Println(err)
 	}
 
-	if err := orderSvc.NewWithdrawal(ctx, model.Withdrawal{Order: 22345678936,
+	if err := orderSvc.NewWithdrawal(ctx, model.Withdrawal{Order: "22345678936",
 		Sum:  100,
 		User: "vasya"}); err != nil {
 		log.Println(err)

@@ -92,7 +92,7 @@ func (svc *Storage) Migrate(ctx context.Context) error {
 		);
 		CREATE TABLE IF NOT EXISTS orders
 		(
-			num NUMERIC not null,
+			num varchar(40) not null,
 			status int not null,
 			accrual NUMERIC not null default 0,
 			uploaded_at timestamp with time zone not null default now(),
@@ -102,7 +102,7 @@ func (svc *Storage) Migrate(ctx context.Context) error {
 		);
 		CREATE TABLE IF NOT EXISTS withdrawals
 		(
-			ordernum NUMERIC not null,
+			ordernum varchar(40) not null,
 			sum NUMERIC not null,
 			processed_at timestamp with time zone not null default now(),
 			login varchar(64) not null,
