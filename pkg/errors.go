@@ -3,13 +3,14 @@ package pkg
 import "errors"
 
 var (
-	ErrNoData          = errors.New("no data")
-	ErrInvalidInput    = errors.New("invalid input")
-	ErrInvalidLogin    = errors.New("invalid login")
-	ErrInvalidPassword = errors.New("wrong password")
-	ErrAlreadyExists   = errors.New("object exists in the DB")
-	ErrNotExists       = errors.New("object not exists in the DB")
-	ErrInvalidOrderNum = errors.New("invalid order number")
+	ErrNoData              = errors.New("no data")
+	ErrInvalidInput        = errors.New("invalid input")
+	ErrInvalidLogin        = errors.New("invalid login")
+	ErrInvalidPassword     = errors.New("wrong password")
+	ErrAlreadyExists       = errors.New("object exists in the DB")
+	ErrNotExists           = errors.New("object not exists in the DB")
+	ErrInvalidOrderNum     = errors.New("invalid order number")
+	ErrInsufficientBalance = errors.New("insufficient balance")
 )
 
 /*

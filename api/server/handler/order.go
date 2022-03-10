@@ -63,7 +63,7 @@ func (h *Handler) NewOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// check if order exists
+	// check if order exists   TODO: maybe move to order service
 	if order, err := h.orderSvc.GetOrder(ctx, orderNum); err == nil {
 		//fmt.Println("\n\n", order, "\n\n")
 		if order.User == user.Login { // 200 order already loaded by this user

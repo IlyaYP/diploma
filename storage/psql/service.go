@@ -94,7 +94,7 @@ func (svc *Storage) Migrate(ctx context.Context) error {
 		(
 			num NUMERIC not null,
 			status int not null,
-			accrual int not null default 0,
+			accrual NUMERIC not null default 0,
 			uploaded_at timestamp with time zone not null default now(),
 			login varchar(64) not null,
 			primary key (num),
@@ -103,12 +103,22 @@ func (svc *Storage) Migrate(ctx context.Context) error {
 		CREATE TABLE IF NOT EXISTS withdrawals
 		(
 			ordernum NUMERIC not null,
-			sum int not null,
+			sum NUMERIC not null,
 			processed_at timestamp with time zone not null default now(),
 			login varchar(64) not null,
+			primary key (ordernum),
 			foreign key (login) references users (login)
 		);
 	`)
+
+	return err
+}
+
+func (svc *Storage) Destroy(ctx context.Context) error {
+	logger := svc.Logger(ctx)
+	logger.Info().Msg("Drop Tables")
+
+	_, err := svc.pool.Exec(ctx, `drop table withdrawals,orders,users;`)
 
 	return err
 }

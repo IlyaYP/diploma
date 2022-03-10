@@ -22,6 +22,9 @@ type UserStorage interface {
 type OrderStorage interface {
 	io.Closer
 
+	// Drop Tables
+	Destroy(ctx context.Context) error
+
 	// CreateOrder creates a new model.Order.
 	CreateOrder(ctx context.Context, order model.Order) (model.Order, error)
 
@@ -42,4 +45,7 @@ type OrderStorage interface {
 
 	// GetWithdrawalsByUser returns *model.Withdrawals by login if exists.
 	GetWithdrawalsByUser(ctx context.Context, login string) (*model.Withdrawals, error)
+
+	// NewWithdrawal Apply new Withdrawal to DB
+	NewWithdrawal(ctx context.Context, withdrawal model.Withdrawal) error
 }

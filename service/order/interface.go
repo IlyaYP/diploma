@@ -29,4 +29,7 @@ type Service interface {
 
 	// GetWithdrawalsByUser returns *model.Withdrawals by login if exists.
 	GetWithdrawalsByUser(ctx context.Context, login string) (*model.Withdrawals, error)
+
+	// NewWithdrawal Do new Withdrawal for login if good Balance
+	NewWithdrawal(ctx context.Context, withdrawal model.Withdrawal) error
 }

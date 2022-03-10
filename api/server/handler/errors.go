@@ -55,18 +55,19 @@ func ErrRender(err error) render.Renderer {
 }
 
 var (
-	NewOrderAccepted    = &ErrResponse{HTTPStatusCode: 202, StatusText: "New order accepted"}
-	ErrNoData           = &ErrResponse{HTTPStatusCode: 204, StatusText: "No data"}
-	ErrNotFound         = &ErrResponse{HTTPStatusCode: 404, StatusText: "Resource not found."}
-	ErrMethodNotAllowed = &ErrResponse{HTTPStatusCode: 405, StatusText: "Method not allowed"}
-	ErrBadRequest       = &ErrResponse{HTTPStatusCode: 400, StatusText: "Bad request"}
-	ErrAlreadyExists    = &ErrResponse{HTTPStatusCode: 409, StatusText: "Already exists"}
-	ErrInvalidLogin     = &ErrResponse{HTTPStatusCode: 401, StatusText: "Invalid login"}
-	ErrInvalidOrderNum  = &ErrResponse{HTTPStatusCode: 422, StatusText: "Invalid order number"} //422 — неверный формат номера заказа;
-
+	NewOrderAccepted       = &ErrResponse{HTTPStatusCode: 202, StatusText: "New order accepted"}
+	ErrNoData              = &ErrResponse{HTTPStatusCode: 204, StatusText: "No data"}
+	ErrNotFound            = &ErrResponse{HTTPStatusCode: 404, StatusText: "Resource not found."}
+	ErrMethodNotAllowed    = &ErrResponse{HTTPStatusCode: 405, StatusText: "Method not allowed"}
+	ErrBadRequest          = &ErrResponse{HTTPStatusCode: 400, StatusText: "Bad request"}
+	ErrAlreadyExists       = &ErrResponse{HTTPStatusCode: 409, StatusText: "Already exists"}
+	ErrInvalidLogin        = &ErrResponse{HTTPStatusCode: 401, StatusText: "Invalid login"}
+	ErrInvalidOrderNum     = &ErrResponse{HTTPStatusCode: 422, StatusText: "Invalid order number"} //422 — неверный формат номера заказа;
+	ErrInsufficientBalance = &ErrResponse{HTTPStatusCode: 402, StatusText: "Insufficient balance"}
 )
 
 /*
+402 — на счету недостаточно средств;
 200 — номер заказа уже был загружен этим пользователем;
 202 — новый номер заказа принят в обработку;
 400 — неверный формат запроса;

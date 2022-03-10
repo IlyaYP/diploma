@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/IlyaYP/diploma/model"
+	"github.com/IlyaYP/diploma/pkg"
 	"github.com/IlyaYP/diploma/pkg/logging"
 	"github.com/IlyaYP/diploma/storage"
 	"github.com/rs/zerolog"
@@ -77,7 +78,7 @@ func (svc *service) ProcessOrders(ctx context.Context) error {
 
 	for i, _ := range orders {
 		// TODO: request from accrual
-		orders[i].Accrual = int(1000 * rand.Float32())
+		orders[i].Accrual = float64(int(100000*rand.Float32())) / 100
 		orders[i].Status = model.OrderStatusProcessed
 		if _, err := svc.OrderStorage.UpdateOrder(ctx, orders[i]); err != nil {
 			return err
@@ -113,12 +114,62 @@ func (svc *service) Logger(ctx context.Context) *zerolog.Logger {
 }
 
 // GetBalanceByUser return model.Balance
-// select SUM(accrual) from orders where login='vasya' and status=4;
 func (svc *service) GetBalanceByUser(ctx context.Context, login string) (model.Balance, error) {
+	ctx, _ = logging.GetCtxLogger(ctx) // correlationID is created here
+	logger := svc.Logger(ctx)
+
+	// **** TODO: Remove
+	// Temp, only for Debug
+	if err := svc.ProcessNewOrders(ctx); err != nil {
+		if err != pkg.ErrNoData {
+			logger.Err(err).Msg("ProcessNewOrders:")
+		}
+	}
+
+	if err := svc.ProcessOrders(ctx); err != nil {
+		if err != pkg.ErrNoData {
+			logger.Err(err).Msg("ProcessOrders:")
+		}
+	}
+	// ****
+
 	return svc.OrderStorage.GetBalanceByUser(ctx, login)
 }
 
 // GetWithdrawalsByUser returns *model.Withdrawals by login if exists.
 func (svc *service) GetWithdrawalsByUser(ctx context.Context, login string) (*model.Withdrawals, error) {
 	return svc.OrderStorage.GetWithdrawalsByUser(ctx, login)
+}
+
+// NewWithdrawal Do new Withdrawal for login if good balance
+func (svc *service) NewWithdrawal(ctx context.Context, withdrawal model.Withdrawal) error {
+	ctx, _ = logging.GetCtxLogger(ctx) // correlationID is created here
+	logger := svc.Logger(ctx)
+
+	balance, err := svc.GetBalanceByUser(ctx, withdrawal.User)
+	if err != nil {
+		logger.Err(err).Msg("NewWithdrawal: can't get balance")
+		//return err
+	}
+
+	// check if enough balance
+	if withdrawal.Sum+balance.Withdrawn > balance.Current {
+		logger.Err(pkg.ErrInsufficientBalance).Msgf("NewWithdrawal: current balance:%v less then withdrawal sum: %v",
+			balance.Current-balance.Withdrawn,
+			withdrawal.Sum,
+		)
+		return pkg.ErrInsufficientBalance
+	}
+
+	// add withdrawal to db
+	if err := svc.OrderStorage.NewWithdrawal(ctx, withdrawal); err != nil {
+		logger.Err(err).Msg("NewWithdrawal: can't apply withdrawal to DB")
+		return err
+	}
+
+	logger.Info().Msgf("Success NewWithdrawal sum: %v by %v",
+		withdrawal.Sum,
+		withdrawal.User,
+	)
+	return nil
 }

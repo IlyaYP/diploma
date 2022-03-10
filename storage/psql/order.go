@@ -5,6 +5,7 @@ import (
 	"errors"
 	"github.com/IlyaYP/diploma/model"
 	"github.com/IlyaYP/diploma/pkg"
+	"github.com/IlyaYP/diploma/pkg/logging"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgx/v4"
 )
@@ -175,10 +176,13 @@ func (svc *Storage) UpdateOrder(ctx context.Context, order model.Order) (model.O
 func (svc *Storage) GetBalanceByUser(ctx context.Context, login string) (model.Balance, error) {
 	logger := svc.Logger(ctx)
 	balance := model.Balance{}
+
+	// TODO: Something with scan error when table empty
+	// error="can't scan into dest[0]: cannot assign 0 1 into *int"
 	err := svc.pool.QueryRow(ctx,
 		`SELECT * FROM 
-			(select SUM(accrual) as current from orders where login=$1 and status=4) as t1,
-			(select SUM(sum) as withdrawn from withdrawals where login=$1) as t2;`,
+			(select COALESCE(SUM(accrual), 0) as current from orders where login=$1 and status=4) as t1,
+			(select COALESCE(SUM(sum), 0) as withdrawn from withdrawals where login=$1) as t2;`,
 		login,
 	).Scan(
 		&balance.Current,
@@ -231,4 +235,31 @@ func (svc *Storage) GetWithdrawalsByUser(ctx context.Context, login string) (*mo
 	}
 
 	return &withdrawals, nil
+}
+
+// NewWithdrawal Apply new Withdrawal to DB
+// insert into withdrawals(ordernum, sum, login) values (22345678902, 35, 'vasya');
+func (svc *Storage) NewWithdrawal(ctx context.Context, withdrawal model.Withdrawal) error {
+	ctx, _ = logging.GetCtxLogger(ctx) // correlationID is created here
+	logger := svc.Logger(ctx)
+	logger.UpdateContext(withdrawal.GetLoggerContext)
+
+	_, err := svc.pool.Exec(ctx, `insert into withdrawals(ordernum, sum, login) values ($1, $2, $3)`,
+		withdrawal.Order, withdrawal.Sum, withdrawal.User)
+	if err != nil {
+		var pgErr *pgconn.PgError
+		if errors.As(err, &pgErr) {
+			if pgErr.Code == "23505" {
+				logger.Err(pgErr).Msg("Error insert into withdrawals")
+				return pkg.ErrAlreadyExists
+			}
+		}
+
+		logger.Err(err).Msg("Error insert into withdrawals")
+		return err
+	}
+
+	logger.Info().Msg("Successfully created order")
+
+	return nil
 }
