@@ -11,6 +11,8 @@ var (
 	ErrNotExists           = errors.New("object not exists in the DB")
 	ErrInvalidOrderNum     = errors.New("invalid order number")
 	ErrInsufficientBalance = errors.New("insufficient balance")
+	ErrServerError         = errors.New("internal server error")
+	ErrTooManyRequests     = errors.New("too many requests")
 )
 
 /*

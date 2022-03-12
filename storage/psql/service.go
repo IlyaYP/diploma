@@ -14,9 +14,6 @@ var _ storage.OrderStorage = (*Storage)(nil)
 
 const (
 	serviceName = "psql"
-
-	dbTableLoggingKey     = "db-table"
-	dbOperationLoggingKey = "db-operation"
 )
 
 type (

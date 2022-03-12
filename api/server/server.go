@@ -57,11 +57,12 @@ func WithRouter(r *handler.Handler) Option {
 	}
 }
 
-//// Serve starts listening for inbound requests.
-//func (s *Server) Serve() error {
-//	return s.ListenAndServe()
-//}
+// Serve starts listening for inbound requests.
+func (s *Server) Serve() error {
+	return s.ListenAndServe()
+}
 
+// TODO: smth
 //// Close closes the HTTPServer from listening for the inbound requests.
 //func (s *Server) Close() error {
 //	//	return s.server.Close()

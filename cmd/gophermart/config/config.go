@@ -7,6 +7,8 @@ import (
 	"github.com/IlyaYP/diploma/api/server"
 	"github.com/IlyaYP/diploma/api/server/handler"
 	"github.com/IlyaYP/diploma/pkg/logging"
+	"github.com/IlyaYP/diploma/provider/accrual"
+	"github.com/IlyaYP/diploma/provider/accrual/http"
 	"github.com/IlyaYP/diploma/service/order"
 	"github.com/IlyaYP/diploma/service/user"
 	"github.com/IlyaYP/diploma/storage/psql"
@@ -15,12 +17,13 @@ import (
 
 // Config combines sub-configs for all services, storages and providers.
 type Config struct {
-	UserService    user.Config
-	PSQLStorage    psql.Config
-	APISever       server.Config
-	Address        string `env:"RUN_ADDRESS"`
-	AccrualAddress string `env:"ACCRUAL_SYSTEM_ADDRESS"`
-	DSN            string `env:"DATABASE_URI"`
+	UserService         user.Config
+	PSQLStorage         psql.Config
+	APISever            server.Config
+	AccrualHTTPProvider http.Config
+	Address             string `env:"RUN_ADDRESS"`
+	AccrualAddress      string `env:"ACCRUAL_SYSTEM_ADDRESS"`
+	DSN                 string `env:"DATABASE_URI"`
 }
 
 // New initializes a new config.
@@ -42,6 +45,8 @@ func New() (*Config, error) {
 	cfg.PSQLStorage = psql.NewDefaultConfig()
 	cfg.PSQLStorage.DSN = cfg.DSN
 	cfg.APISever.Address = cfg.Address
+	cfg.AccrualHTTPProvider = http.NewDefaultConfig()
+	cfg.AccrualHTTPProvider.AccrualAddress = cfg.AccrualAddress
 
 	return &cfg, nil
 }
@@ -133,7 +138,7 @@ func (c Config) BuildServer(ctx context.Context) (*server.Server, error) {
 	// Build Storage
 	st, err := c.BuildPsqlStorage(ctx)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("building server: %w", err)
 	}
 
 	// Build User Service
@@ -171,4 +176,13 @@ func (c Config) BuildServer(ctx context.Context) (*server.Server, error) {
 		return nil, fmt.Errorf("building server: %w", err)
 	}
 	return s, nil
+}
+
+func (c Config) BuildAccrualProvider(ctx context.Context) (accrual.Provider, error) {
+	accPvd, err := http.New(http.WithConfig(&c.AccrualHTTPProvider))
+	if err != nil {
+		return nil, fmt.Errorf("building provider: %w", err)
+	}
+
+	return accPvd, nil
 }

@@ -65,7 +65,6 @@ func New(opts ...Option) (*service, error) {
 // Register a new user.
 func (svc *service) Register(ctx context.Context, login, password string) (model.User, error) {
 	ctx, _ = logging.GetCtxLogger(ctx) // correlationID is created here
-
 	logger := svc.Logger(ctx)
 
 	// Input checks
