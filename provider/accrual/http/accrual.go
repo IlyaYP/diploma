@@ -118,6 +118,10 @@ func (svc *service) sendRequest(ctx context.Context, order model.Order) (model.O
 
 	endpoint := svc.config.AccrualAddress + "/api/orders/" + order.Number
 	jsonData, err := json.Marshal(order)
+	if err != nil {
+		logger.Err(err).Msg("sendRequest:json.Marshal")
+		return model.Order{}, err
+	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint, bytes.NewBuffer(jsonData))
 	if err != nil {

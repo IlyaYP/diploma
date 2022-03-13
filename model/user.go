@@ -19,10 +19,10 @@ func (u User) GetLoggerContext(logCtx zerolog.Context) zerolog.Context {
 
 func (u *User) Bind(r *http.Request) error {
 	if u.Login == "" {
-		return fmt.Errorf("Login is a required field")
+		return fmt.Errorf("login is a required field")
 	}
 	if u.Password == "" {
-		return fmt.Errorf("Password is a required field")
+		return fmt.Errorf("password is a required field")
 	}
 	return nil
 }

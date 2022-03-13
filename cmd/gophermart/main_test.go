@@ -67,8 +67,8 @@ func GeneralTests() error {
 	fmt.Println()
 
 	if user, err := userSvc.Login(ctx, "vasya", "God"); err != nil {
-		return err
 		log.Println(err)
+		return err
 	} else {
 		fmt.Println(user)
 	}

@@ -60,7 +60,7 @@ func New(opts ...option) (*Storage, error) {
 
 	pool, err := pgxpool.Connect(svc.ctx, svc.config.DSN)
 	if err != nil {
-		return nil, fmt.Errorf("Unable to connect to database: %w", err)
+		return nil, fmt.Errorf("unable to connect to database: %w", err)
 	}
 	svc.pool = pool
 
@@ -69,7 +69,7 @@ func New(opts ...option) (*Storage, error) {
 	}
 
 	if err := svc.Migrate(svc.ctx); err != nil {
-		return nil, fmt.Errorf("Unable to create table: %w", err)
+		return nil, fmt.Errorf("unable to create table: %w", err)
 	}
 
 	return svc, nil

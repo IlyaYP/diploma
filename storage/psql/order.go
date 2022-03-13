@@ -69,11 +69,11 @@ func (svc *Storage) GetOrdersByUser(ctx context.Context, login string) (*model.O
 		"select * from orders where login=$1 ORDER BY uploaded_at ASC",
 		login,
 	)
-	defer ordersRows.Close()
 	if err != nil {
 		logger.Err(err).Msg("GetOrdersByUser")
 		return nil, err //pgx.ErrNoRows
 	}
+	defer ordersRows.Close()
 
 	for ordersRows.Next() {
 		order := model.Order{}
@@ -109,11 +109,11 @@ func (svc *Storage) GetOrdersByStatus(ctx context.Context, status model.OrderSta
 		"select * from orders where status=$1 ORDER BY uploaded_at ASC",
 		status.Int(),
 	)
-	defer ordersRows.Close()
 	if err != nil {
 		logger.Err(err).Msg("GetOrdersByStatus")
 		return nil, err //pgx.ErrNoRows
 	}
+	defer ordersRows.Close()
 
 	for ordersRows.Next() {
 		order := model.Order{}
@@ -208,11 +208,11 @@ func (svc *Storage) GetWithdrawalsByUser(ctx context.Context, login string) (*mo
 		"select * from withdrawals where login=$1 ORDER BY processed_at ASC",
 		login,
 	)
-	defer withdrawalsRows.Close()
 	if err != nil {
 		logger.Err(err).Msg("GetWithdrawalsByUser")
 		return nil, err //pgx.ErrNoRows
 	}
+	defer withdrawalsRows.Close()
 
 	for withdrawalsRows.Next() {
 		withdrawal := model.Withdrawal{}

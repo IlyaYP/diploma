@@ -40,10 +40,10 @@ type (
 
 func (w *Withdrawal) Bind(r *http.Request) error {
 	if w.Order == "" {
-		return fmt.Errorf("Order is a required field")
+		return fmt.Errorf("order is a required field")
 	}
 	if w.Sum == 0 {
-		return fmt.Errorf("Sum is a required field")
+		return fmt.Errorf("sum is a required field")
 	}
 	return nil
 }

@@ -91,12 +91,12 @@ func (h *Handler) UserContext(next http.Handler) http.Handler {
 		token, claims, err := jwtauth.FromContext(ctx)
 
 		if err != nil {
-			http.Error(w, err.Error(), 401)
+			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
 		}
 
 		if token == nil || jwt.Validate(token) != nil {
-			http.Error(w, http.StatusText(401), 401)
+			http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 			return
 		}
 
@@ -107,7 +107,7 @@ func (h *Handler) UserContext(next http.Handler) http.Handler {
 
 		user, err := h.userSvc.GetUserByLogin(ctx, login)
 		if err != nil {
-			http.Error(w, err.Error(), 401)
+			http.Error(w, err.Error(), http.StatusUnauthorized)
 			logger.Err(err).Msg("GetUserByLogin")
 			return
 		}

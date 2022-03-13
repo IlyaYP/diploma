@@ -109,8 +109,7 @@ func (svc *service) ProcessOrders(ctx context.Context) error {
 		return err
 	}
 
-	for i, _ := range orders {
-		//// TODO: request from accrual
+	for i := range orders {
 		//orders[i].Accrual = float64(int(100000*rand.Float32())) / 100
 		//orders[i].Status = model.OrderStatusProcessed
 		//if _, err := svc.OrderStorage.UpdateOrder(ctx, orders[i]); err != nil {
@@ -128,8 +127,7 @@ func (svc *service) ProcessNewOrders(ctx context.Context) error {
 		return err
 	}
 
-	for i, _ := range orders {
-		//// TODO: send to accrual
+	for i := range orders {
 		//orders[i].Status = model.OrderStatusProcessing
 		//if _, err := svc.OrderStorage.UpdateOrder(ctx, orders[i]); err != nil {
 		//	return err
