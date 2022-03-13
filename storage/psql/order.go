@@ -177,8 +177,6 @@ func (svc *Storage) GetBalanceByUser(ctx context.Context, login string) (model.B
 	logger := svc.Logger(ctx)
 	balance := model.Balance{}
 
-	// TODO: Something with scan error when table empty
-	// error="can't scan into dest[0]: cannot assign 0 1 into *int"
 	err := svc.pool.QueryRow(ctx,
 		`SELECT * FROM 
 			(select COALESCE(SUM(accrual), 0) as current from orders where login=$1 and status=4) as t1,
@@ -190,6 +188,7 @@ func (svc *Storage) GetBalanceByUser(ctx context.Context, login string) (model.B
 	)
 	switch err {
 	case nil:
+		balance.Current = balance.Current - balance.Withdrawn
 		return balance, nil
 	case pgx.ErrNoRows:
 		logger.Err(err).Msg("GetBalanceByUser")
