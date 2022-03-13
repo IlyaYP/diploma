@@ -146,14 +146,20 @@ func (c Config) BuildServer(ctx context.Context) (*server.Server, error) {
 		user.WithConfig(c.UserService),
 		user.WithUserStorage(st),
 	)
-
 	if err != nil {
 		return nil, fmt.Errorf("building user service: %w", err)
+	}
+
+	// BuildAccrualProvider builds Accrual Provider dependency
+	accPr, err := c.BuildAccrualProvider(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("accrual provider: %w", err)
 	}
 
 	// Build Order Service
 	orderSvc, err := order.New(
 		order.WithOrderStorage(st),
+		order.WithAccrualProvider(accPr),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("building order service: %w", err)
@@ -178,11 +184,12 @@ func (c Config) BuildServer(ctx context.Context) (*server.Server, error) {
 	return s, nil
 }
 
+// BuildAccrualProvider builds Accrual Provider dependency
 func (c Config) BuildAccrualProvider(ctx context.Context) (accrual.Provider, error) {
-	accPvd, err := http.New(http.WithConfig(&c.AccrualHTTPProvider))
+	svc, err := http.New(http.WithConfig(&c.AccrualHTTPProvider))
 	if err != nil {
 		return nil, fmt.Errorf("building provider: %w", err)
 	}
 
-	return accPvd, nil
+	return svc, nil
 }

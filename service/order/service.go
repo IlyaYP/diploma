@@ -6,9 +6,9 @@ import (
 	"github.com/IlyaYP/diploma/model"
 	"github.com/IlyaYP/diploma/pkg"
 	"github.com/IlyaYP/diploma/pkg/logging"
+	"github.com/IlyaYP/diploma/provider/accrual"
 	"github.com/IlyaYP/diploma/storage"
 	"github.com/rs/zerolog"
-	"math/rand"
 )
 
 var _ Service = (*service)(nil)
@@ -19,11 +19,20 @@ const (
 
 type (
 	service struct {
-		OrderStorage storage.OrderStorage
+		OrderStorage    storage.OrderStorage
+		AccrualProvider accrual.Provider
 	}
 
 	Option func(svc *service) error
 )
+
+// WithAccrualProvider sets accrual.Provider.
+func WithAccrualProvider(pr accrual.Provider) Option {
+	return func(svc *service) error {
+		svc.AccrualProvider = pr
+		return nil
+	}
+}
 
 // WithOrderStorage sets storage.UserStorage.
 func WithOrderStorage(st storage.OrderStorage) Option {
@@ -46,13 +55,22 @@ func New(opts ...Option) (*service, error) {
 		return nil, fmt.Errorf("OrderStorage: nil")
 	}
 
+	if svc.AccrualProvider == nil {
+		return nil, fmt.Errorf("AccrualProvider: nil")
+	}
 	return svc, nil
 
 }
 
 // CreateOrder creates a new model.Order.
 func (svc *service) CreateOrder(ctx context.Context, order model.Order) (model.Order, error) {
-	return svc.OrderStorage.CreateOrder(ctx, order)
+	order, err := svc.OrderStorage.CreateOrder(ctx, order)
+	if err != nil {
+		return model.Order{}, err
+	}
+
+	go svc.ProcessOrder(ctx, order)
+	return order, nil
 }
 
 // GetOrder returns model.Order by its number if exists.
@@ -67,6 +85,21 @@ func (svc *service) GetOrdersByUser(ctx context.Context, login string) (*model.O
 
 // ProcessOrder do something with order
 func (svc *service) ProcessOrder(ctx context.Context, order model.Order) error {
+	//ctx, _ = logging.GetCtxLogger(ctx) // correlationID is created here
+	logger := svc.Logger(ctx)
+
+	rOrder, err := svc.AccrualProvider.ProcessOrder(ctx, order)
+	if err != nil {
+		logger.Err(err).Msg("ProcessOrder error.")
+		return err
+	}
+
+	if _, err := svc.OrderStorage.UpdateOrder(ctx, rOrder); err != nil {
+		logger.Err(err).Msg("ProcessOrder: UpdateOrder error.")
+		return err
+	}
+
+	logger.Info().Msgf("ProcessOrder success, order status:%s", rOrder.Status)
 	return nil
 }
 
@@ -77,12 +110,13 @@ func (svc *service) ProcessOrders(ctx context.Context) error {
 	}
 
 	for i, _ := range orders {
-		// TODO: request from accrual
-		orders[i].Accrual = float64(int(100000*rand.Float32())) / 100
-		orders[i].Status = model.OrderStatusProcessed
-		if _, err := svc.OrderStorage.UpdateOrder(ctx, orders[i]); err != nil {
-			return err
-		}
+		//// TODO: request from accrual
+		//orders[i].Accrual = float64(int(100000*rand.Float32())) / 100
+		//orders[i].Status = model.OrderStatusProcessed
+		//if _, err := svc.OrderStorage.UpdateOrder(ctx, orders[i]); err != nil {
+		//	return err
+		//}
+		svc.ProcessOrder(ctx, orders[i])
 	}
 
 	return nil
@@ -95,11 +129,12 @@ func (svc *service) ProcessNewOrders(ctx context.Context) error {
 	}
 
 	for i, _ := range orders {
-		// TODO: send to accrual
-		orders[i].Status = model.OrderStatusProcessing
-		if _, err := svc.OrderStorage.UpdateOrder(ctx, orders[i]); err != nil {
-			return err
-		}
+		//// TODO: send to accrual
+		//orders[i].Status = model.OrderStatusProcessing
+		//if _, err := svc.OrderStorage.UpdateOrder(ctx, orders[i]); err != nil {
+		//	return err
+		//}
+		svc.ProcessOrder(ctx, orders[i])
 	}
 
 	return nil
@@ -154,10 +189,11 @@ func (svc *service) NewWithdrawal(ctx context.Context, withdrawal model.Withdraw
 
 	// check if enough balance
 	if withdrawal.Sum+balance.Withdrawn > balance.Current {
-		logger.Err(pkg.ErrInsufficientBalance).Msgf("NewWithdrawal: current balance:%v less then withdrawal sum: %v",
-			balance.Current-balance.Withdrawn,
-			withdrawal.Sum,
-		)
+		logger.Err(pkg.ErrInsufficientBalance).
+			Msgf("NewWithdrawal: current balance:%v less then withdrawal sum: %v",
+				balance.Current-balance.Withdrawn,
+				withdrawal.Sum,
+			)
 		return pkg.ErrInsufficientBalance
 	}
 

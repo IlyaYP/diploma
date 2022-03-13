@@ -106,7 +106,7 @@ func New(opts ...option) (*service, error) {
 // ProcessOrder request accrual for order
 func (svc *service) ProcessOrder(ctx context.Context, order model.Order) (model.Order, error) {
 
-	return model.Order{}, nil
+	return svc.sendRequest(ctx, order)
 }
 
 // sendRequest sends request
@@ -155,9 +155,12 @@ func (svc *service) sendRequest(ctx context.Context, order model.Order) (model.O
 			logger.Err(err).Msg("sendRequest:Unmarshal:Couldn't parse response body.")
 			return model.Order{}, err
 		}
+		return order, nil
 	}
 
-	return order, nil
+	logger.Err(fmt.Errorf("unhandled status:%s", response.Status)).
+		Msgf("sendRequest:Unhandled Response Status:%s", response.Status)
+	return model.Order{}, err
 }
 
 // Logger returns logger with ServiceKey field set.

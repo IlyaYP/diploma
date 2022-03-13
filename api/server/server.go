@@ -1,9 +1,17 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"github.com/IlyaYP/diploma/api/server/handler"
+	"github.com/IlyaYP/diploma/pkg/logging"
+	"github.com/rs/zerolog"
 	"net/http"
+	"time"
+)
+
+const (
+	serviceName = "http-server"
 )
 
 // Config provides the configuration for the API server
@@ -58,16 +66,33 @@ func WithRouter(r *handler.Handler) Option {
 }
 
 // Serve starts listening for inbound requests.
-func (s *Server) Serve() error {
-	return s.ListenAndServe()
+func (s *Server) Serve(ctx context.Context) {
+	ctx, _ = logging.GetCtxLogger(ctx) // correlationID is created here
+	logger := s.Logger(ctx)
+	logger.Info().Msg("Started serve connections")
+
+	// service connections
+	if err := s.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+		logger.Err(err).Msg("ListenAndServe")
+		return
+	}
+	logger.Info().Msg("Finished serve connections")
 }
 
-// TODO: smth
-//// Close closes the HTTPServer from listening for the inbound requests.
-//func (s *Server) Close() error {
-//	//	return s.server.Close()
-//	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-//	defer cancel()
-//	return s.Shutdown(ctx)
-//
-//}
+// Close closes the HTTPServer from listening for the inbound requests.
+func (s *Server) Close(ctx context.Context) {
+	logger := s.Logger(ctx)
+	logger.Info().Msg("Shutdown Server")
+	ctxt, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := s.Shutdown(ctxt); err != nil {
+		logger.Err(err).Msg("HTTP server Shutdown")
+	}
+}
+
+func (s *Server) Logger(ctx context.Context) *zerolog.Logger {
+	_, logger := logging.GetCtxLogger(ctx)
+	logger = logger.With().Str(logging.ServiceKey, serviceName).Logger()
+
+	return &logger
+}

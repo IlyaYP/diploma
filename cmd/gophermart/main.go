@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"github.com/IlyaYP/diploma/cmd/gophermart/config"
+	"os/signal"
+	"syscall"
 )
 
 func main() {
@@ -13,16 +15,24 @@ func run(test bool) error {
 	if err != nil {
 		panic(err)
 	}
-	ctx := context.Background()
+
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
+	defer stop()
 
 	srv, err := cfg.BuildServer(ctx)
 	if err != nil {
 		panic(err)
 	}
 
-	if !test {
-		return srv.ListenAndServe()
+	if test {
+		return nil
 	}
+
+	go srv.Serve(ctx)
+
+	<-ctx.Done()
+	srv.Close(ctx)
+
 	return nil
 
 }
