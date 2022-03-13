@@ -69,7 +69,7 @@ func (svc *service) CreateOrder(ctx context.Context, order model.Order) (model.O
 		return model.Order{}, err
 	}
 
-	go svc.ProcessOrder(ctx, order)
+	go svc.ProcessOrder(context.Background(), order)
 	return order, nil
 }
 
