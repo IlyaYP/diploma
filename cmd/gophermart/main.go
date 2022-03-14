@@ -33,6 +33,11 @@ func run(test bool) error {
 	<-ctx.Done()
 	srv.Close(ctx)
 
+	// closing everything, do not care about errors
+	for _, c := range cfg.Closer {
+		c.Close()
+	}
+
 	return nil
 
 }

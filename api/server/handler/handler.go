@@ -63,6 +63,14 @@ func NewHandler(opts ...Option) (*Handler, error) {
 		}
 	}
 
+	if h.userSvc == nil {
+		return nil, fmt.Errorf("userSvc: nil")
+	}
+
+	if h.orderSvc == nil {
+		return nil, fmt.Errorf("orderSvc: nil")
+	}
+
 	h.tokenAuth = jwtauth.New("HS256", []byte("GMartSuperSecret"), nil)
 
 	h.Use(render.SetContentType(render.ContentTypeJSON))

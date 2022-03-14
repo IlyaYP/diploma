@@ -13,6 +13,7 @@ import (
 	"github.com/IlyaYP/diploma/service/user"
 	"github.com/IlyaYP/diploma/storage/psql"
 	"github.com/caarlos0/env/v6"
+	"io"
 )
 
 // Config combines sub-configs for all services, storages and providers.
@@ -24,6 +25,7 @@ type Config struct {
 	Address             string `env:"RUN_ADDRESS"`
 	AccrualAddress      string `env:"ACCRUAL_SYSTEM_ADDRESS"`
 	DSN                 string `env:"DATABASE_URI"`
+	Closer              []io.Closer
 }
 
 // New initializes a new config.
@@ -140,6 +142,7 @@ func (c Config) BuildServer(ctx context.Context) (*server.Server, error) {
 	if err != nil {
 		return nil, fmt.Errorf("building server: %w", err)
 	}
+	c.Closer = append(c.Closer, st)
 
 	// Build User Service
 	userSvc, err := user.New(
