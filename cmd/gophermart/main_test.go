@@ -5,6 +5,10 @@ import (
 	"fmt"
 	"github.com/IlyaYP/diploma/cmd/gophermart/config"
 	"github.com/IlyaYP/diploma/model"
+	//"github.com/IlyaYP/diploma/provider/accrual/http"
+	http "github.com/IlyaYP/diploma/provider/accrual/mock"
+	"github.com/IlyaYP/diploma/service/order"
+	"github.com/IlyaYP/diploma/service/user"
 	"log"
 	"testing"
 )
@@ -45,11 +49,21 @@ func GeneralTests() error {
 
 	st, _ := cfg.BuildPsqlStorage(ctx)
 	st.Destroy(ctx)
-	st.Close()
+	st.Migrate(ctx)
+	defer st.Close()
 
-	userSvc, err := cfg.BuildUserService(ctx)
+	//userSvc, err := cfg.BuildUserService(ctx)
+	//if err != nil {
+	//	return err
+	//}
+
+	// Build User Service
+	userSvc, err := user.New(
+		user.WithConfig(cfg.UserService),
+		user.WithUserStorage(st),
+	)
 	if err != nil {
-		return err
+		return fmt.Errorf("building user service: %w", err)
 	}
 
 	fmt.Println()
@@ -83,9 +97,31 @@ func GeneralTests() error {
 
 	fmt.Println()
 
-	orderSvc, err := cfg.BuildOrderService(ctx)
+	//orderSvc, err := cfg.BuildOrderService(ctx)
+	//if err != nil {
+	//	return err
+	//}
+
+	// BuildAccrualProvider builds Accrual Provider dependency
+	//accPr, err := cfg.BuildAccrualProvider(ctx)
+	//if err != nil {
+	//	return fmt.Errorf("accrual provider: %w", err)
+	//}
+	c := http.NewDefaultConfig()
+	c.AccrualAddress = cfg.AccrualHTTPProvider.AccrualAddress
+
+	accPr, err := http.New(http.WithConfig(&c))
 	if err != nil {
-		return err
+		return fmt.Errorf("building provider: %w", err)
+	}
+
+	// Build Order Service
+	orderSvc, err := order.New(
+		order.WithOrderStorage(st),
+		order.WithAccrualProvider(accPr),
+	)
+	if err != nil {
+		return fmt.Errorf("building order service: %w", err)
 	}
 
 	if _, err := orderSvc.CreateOrder(ctx, model.Order{Number: "12345678903",

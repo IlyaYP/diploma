@@ -115,8 +115,15 @@ func (c Config) BuildOrderService(ctx context.Context) (order.Service, error) {
 		return nil, err
 	}
 
+	// BuildAccrualProvider builds Accrual Provider dependency
+	accPr, err := c.BuildAccrualProvider(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("accrual provider: %w", err)
+	}
+
 	svc, err := order.New(
 		order.WithOrderStorage(st),
+		order.WithAccrualProvider(accPr),
 	)
 	if err != nil {
 		return nil, fmt.Errorf("building test service: %w", err)
