@@ -9,9 +9,13 @@ import (
 	"github.com/IlyaYP/diploma/pkg"
 	"github.com/IlyaYP/diploma/pkg/logging"
 	"github.com/IlyaYP/diploma/provider/accrual"
+	"github.com/Rican7/retry"
+	"github.com/Rican7/retry/backoff"
+	"github.com/Rican7/retry/strategy"
 	"github.com/rs/zerolog"
 	"io/ioutil"
 	"net/http"
+	"time"
 )
 
 var _ accrual.Provider = (*service)(nil)
@@ -105,8 +109,34 @@ func New(opts ...option) (*service, error) {
 
 // ProcessOrder request accrual for order
 func (svc *service) ProcessOrder(ctx context.Context, order model.Order) (model.Order, error) {
+	logger := svc.Logger(ctx)
 
-	return svc.sendRequest(ctx, order)
+	var response model.Order
+
+	action := func(attempt uint) error {
+		var err error
+
+		response, err = svc.sendRequest(ctx, order)
+
+		if err != nil {
+			logger.Err(err).Msgf("sendRequest failed to fetch (attempt #%d) with error: %d", attempt, err)
+		}
+
+		return err
+	}
+
+	err := retry.Retry(
+		action,
+		strategy.Limit(5),
+		strategy.Backoff(backoff.Fibonacci(15*time.Millisecond)),
+	)
+
+	if err != nil {
+		logger.Err(err).Msg("sendRequest failed")
+		return model.Order{}, err
+	}
+
+	return response, nil
 }
 
 // sendRequest sends request
@@ -114,7 +144,6 @@ func (svc *service) ProcessOrder(ctx context.Context, order model.Order) (model.
 func (svc *service) sendRequest(ctx context.Context, order model.Order) (model.Order, error) {
 	//ctx, _ = logging.GetCtxLogger(ctx) // correlationID is created here
 	logger := svc.Logger(ctx)
-	logger.Info().Msg("sendRequest")
 
 	endpoint := svc.config.AccrualAddress + "/api/orders/" + order.Number
 	jsonData, err := json.Marshal(order)
@@ -146,12 +175,12 @@ func (svc *service) sendRequest(ctx context.Context, order model.Order) (model.O
 
 	if response.StatusCode == 500 {
 		logger.Err(pkg.ErrServerError).Msg("sendRequest:error on server side")
-		return model.Order{}, err
+		return model.Order{}, pkg.ErrServerError
 	}
 
 	if response.StatusCode == 429 { // TODO: Get Retry-After: 60
 		logger.Err(pkg.ErrTooManyRequests).Msgf("sendRequest:Too Many Requests: %s", string(body))
-		return model.Order{}, err
+		return model.Order{}, pkg.ErrTooManyRequests
 	}
 
 	if response.StatusCode == 200 {
@@ -164,7 +193,7 @@ func (svc *service) sendRequest(ctx context.Context, order model.Order) (model.O
 
 	logger.Err(fmt.Errorf("unhandled status:%s", response.Status)).
 		Msgf("sendRequest:Unhandled Response Status:%s", response.Status)
-	return model.Order{}, err
+	return model.Order{}, pkg.ErrServerError
 }
 
 // Logger returns logger with ServiceKey field set.
