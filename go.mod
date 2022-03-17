@@ -15,6 +15,7 @@ require (
 )
 
 require (
+	github.com/Rican7/retry v0.3.1 // indirect
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.0-20210816181553-5444fa50b93d // indirect
 	github.com/goccy/go-json v0.7.6 // indirect
 	github.com/gofrs/uuid v4.0.0+incompatible // indirect
