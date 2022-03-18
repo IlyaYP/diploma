@@ -1,12 +1,14 @@
 package handler
 
 import (
+	"compress/flate"
 	"context"
 	"fmt"
 	"github.com/IlyaYP/diploma/pkg/logging"
 	"github.com/IlyaYP/diploma/service/order"
 	"github.com/IlyaYP/diploma/service/user"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/jwtauth/v5"
 	"github.com/go-chi/render"
 	"github.com/rs/zerolog"
@@ -76,6 +78,8 @@ func NewHandler(opts ...Option) (*Handler, error) {
 	h.Use(render.SetContentType(render.ContentTypeJSON))
 	h.MethodNotAllowed(methodNotAllowedHandler)
 	h.NotFound(notFoundHandler)
+	compressor := middleware.NewCompressor(flate.DefaultCompression)
+	h.Use(compressor.Handler)
 	h.Route("/api/user", h.user)
 	h.Route("/api/user/orders", h.order)
 	h.Route("/api/user/balance", h.balance)
