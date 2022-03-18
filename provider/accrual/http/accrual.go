@@ -119,7 +119,7 @@ func (svc *service) ProcessOrder(ctx context.Context, order model.Order) (model.
 		response, err = svc.sendRequest(ctx, order)
 
 		if err != nil {
-			logger.Err(err).Msgf("sendRequest failed to fetch (attempt #%d) with error: %d", attempt, err)
+			logger.Err(err).Msgf("sendRequest failed to fetch (attempt #%d)", attempt)
 		}
 
 		return err
@@ -128,7 +128,7 @@ func (svc *service) ProcessOrder(ctx context.Context, order model.Order) (model.
 	err := retry.Retry(
 		action,
 		strategy.Limit(5),
-		strategy.Backoff(backoff.Fibonacci(15*time.Millisecond)),
+		strategy.Backoff(backoff.Fibonacci(100*time.Millisecond)),
 	)
 
 	if err != nil {
