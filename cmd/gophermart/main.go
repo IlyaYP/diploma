@@ -10,10 +10,11 @@ import (
 func main() {
 	run(false)
 }
+
 func run(test bool) error {
 	cfg, err := config.New()
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT, syscall.SIGQUIT)
@@ -21,7 +22,7 @@ func run(test bool) error {
 
 	srv, err := cfg.BuildServer(ctx)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	if test {

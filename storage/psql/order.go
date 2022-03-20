@@ -215,7 +215,7 @@ func (svc *Storage) GetWithdrawalsByUser(ctx context.Context, login string) (*mo
 	defer withdrawalsRows.Close()
 
 	for withdrawalsRows.Next() {
-		withdrawal := model.Withdrawal{}
+		var withdrawal model.Withdrawal
 		err := withdrawalsRows.Scan( //ordernum | sum | processed_at | login
 			&withdrawal.Order,
 			&withdrawal.Sum,
